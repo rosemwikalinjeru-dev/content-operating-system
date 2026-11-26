@@ -26,9 +26,27 @@ export type Audience = z.infer<typeof Audience>;
 export const BrandGuidelines = z.object({
   colors: z.record(z.string().regex(/^[a-z][a-z0-9_]{0,39}$/), HexColor).default({}),
   fonts: z
-    .object({ display: z.string().trim().max(80).optional(), body: z.string().trim().max(80).optional() })
+    .object({
+      display: z.string().trim().max(80).optional(),
+      body: z.string().trim().max(80).optional(),
+      /** Metrics, data labels, technical annotations. */
+      mono: z.string().trim().max(80).optional(),
+    })
     .default({}),
   content_pillars: z.array(ShortText).max(20).default([]),
+  messaging: z
+    .object({
+      /** Primary brand descriptor, e.g. "Business Intelligence. Strategic Transformation. Measurable Performance." */
+      brand_line: z.string().trim().max(300).default(""),
+      promise: z.string().trim().max(300).default(""),
+      /** Core message pillars: "<pillar>: <message>". */
+      message_pillars: z.array(LongText).max(12).default([]),
+      /** Delivery methodology stages, in order: "<stage>: <description>". */
+      methodology: z.array(LongText).max(12).default([]),
+      /** Ordered steps every piece of communication follows. */
+      messaging_structure: z.array(LongText).max(12).default([]),
+    })
+    .default({ brand_line: "", promise: "", message_pillars: [], methodology: [], messaging_structure: [] }),
 });
 export type BrandGuidelines = z.infer<typeof BrandGuidelines>;
 

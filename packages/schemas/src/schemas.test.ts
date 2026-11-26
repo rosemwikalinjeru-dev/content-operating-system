@@ -60,6 +60,21 @@ describe("brand", () => {
     expect(BrandProfileUpdate.safeParse({ name: "New" }).success).toBe(true);
   });
 
+  it("upgrades guidelines saved before the messaging fields existed", () => {
+    const n = normaliseBrand({ audience: {}, voice_profile: {}, brand_guidelines: { colors: { deep_night: "#1A1A2E" }, fonts: { display: "X" } } });
+    expect(n.brand_guidelines.colors.deep_night).toBe("#1A1A2E");
+    expect(n.brand_guidelines.messaging.methodology).toEqual([]);
+  });
+
+  it("defaults follow v1.0: approved palette and five-stage methodology", () => {
+    expect(Object.keys(ROSE_NJERU_DEFAULTS.brand_guidelines.colors).sort()).toEqual(
+      ["cobalt", "deep_night", "forest_teal", "ice_blue", "linen_cream", "warm_gold"],
+    );
+    expect(ROSE_NJERU_DEFAULTS.brand_guidelines.messaging.methodology.map((m) => m.split(":")[0])).toEqual(
+      ["Diagnose", "Strategise", "Design", "Implement", "Optimise"],
+    );
+  });
+
   it("normalises empty or malformed stored JSON", () => {
     const n = normaliseBrand({ audience: {}, voice_profile: { tone: "not-an-array" }, brand_guidelines: null });
     expect(n.voice_profile.tone).toEqual([]);

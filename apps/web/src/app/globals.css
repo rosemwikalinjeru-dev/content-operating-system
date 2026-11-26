@@ -1,24 +1,29 @@
 @import "tailwindcss";
 
-/* Brand tokens (docs/ARCHITECTURE.md, carousel brand defaults). */
+/* Brand tokens: Brand Identity & Guidelines v1.0 (docs/BRAND-DNA.md). Spacing uses Tailwind's
+   default scale; multiples of 8px are 2, 4, 6, 8, 10... */
 @theme {
   --color-night: #1a1a2e;
   --color-teal: #1d9e75;
+  --color-cobalt: #2563eb;
+  --color-ice: #e3eefb;
   --color-gold: #c9a84c;
   --color-linen: #f1efe8;
-  --color-violet: #7f77dd;
-  --color-charcoal: #2c2c2a;
   --font-display: var(--font-cormorant), Georgia, serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 :root {
   --bg: var(--color-linen);
   --surface: #ffffff;
-  --text: var(--color-charcoal);
-  --muted: #6b6a64;
-  --border: #dedbd0;
-  --accent: var(--color-teal);
+  --text: var(--color-night);
+  --muted: #5c5b6b;
+  --border: #dcd8cc;
+  /* Teal #1D9E75 on white is below 4.5:1, so interactive teal uses a darker shade for text contrast. */
+  --accent: #157a5b;
+  --on-accent: #ffffff; /* 5.29:1 on --accent */
+  --info: var(--color-cobalt);
   color-scheme: light;
 }
 
@@ -29,7 +34,9 @@
     --text: var(--color-linen);
     --muted: #a9a8b8;
     --border: #34344e;
-    --accent: #27b88a;
+    --accent: #1d9e75;
+    --on-accent: var(--color-night); /* white on #1d9e75 is only 3.39:1; Deep Night is 5.04:1 */
+    --info: #7aa7f5;
     color-scheme: dark;
   }
 }
@@ -51,9 +58,10 @@ body {
   }
   .input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .btn-primary {
-    border-radius: 0.5rem; background: var(--accent); color: #fff; padding: 0.6rem 1rem; font-weight: 600;
+    border-radius: 0.5rem; background: var(--accent); color: var(--on-accent); padding: 0.6rem 1rem; font-weight: 600;
   }
   .btn-primary:disabled { opacity: 0.6; }
   .btn-ghost { border-radius: 0.5rem; border: 1px solid var(--border); padding: 0.4rem 0.75rem; font-size: 0.875rem; }
+  .metric { font-family: var(--font-mono); font-weight: 500; letter-spacing: -0.02em; }
   .chip { border-radius: 999px; border: 1px solid var(--border); padding: 0.1rem 0.6rem; font-size: 0.75rem; color: var(--muted); }
 }

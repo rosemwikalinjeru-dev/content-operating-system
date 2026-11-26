@@ -1,9 +1,13 @@
 "use client";
 
-import { ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
+import { BRAND_DEFAULTS_VERSION, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiFetch } from "../ideas/api-client";
+
+/** Rows needed to show the text, counting long lines as wrapping at ~90 characters (3–14). */
+const textRows = (v: string) =>
+  Math.min(14, Math.max(3, v.split("\n").reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 90)), 0) + 1));
 
 const lines = (v: string) => v.split("\n").map((s) => s.trim()).filter(Boolean);
 const join = (v: string[]) => v.join("\n");
@@ -25,6 +29,12 @@ interface FormState {
   colors: string;
   displayFont: string;
   bodyFont: string;
+  monoFont: string;
+  brandLine: string;
+  promise: string;
+  messagePillars: string;
+  methodology: string;
+  messagingStructure: string;
 }
 
 function toForm(b: Pick<BrandProfile, "name" | "positioning" | "audience" | "voice_profile" | "brand_guidelines">): FormState {
@@ -45,6 +55,12 @@ function toForm(b: Pick<BrandProfile, "name" | "positioning" | "audience" | "voi
     colors: Object.entries(b.brand_guidelines.colors).map(([k, v]) => `${k}: ${v}`).join("\n"),
     displayFont: b.brand_guidelines.fonts.display ?? "",
     bodyFont: b.brand_guidelines.fonts.body ?? "",
+    monoFont: b.brand_guidelines.fonts.mono ?? "",
+    brandLine: b.brand_guidelines.messaging.brand_line,
+    promise: b.brand_guidelines.messaging.promise,
+    messagePillars: join(b.brand_guidelines.messaging.message_pillars),
+    methodology: join(b.brand_guidelines.messaging.methodology),
+    messagingStructure: join(b.brand_guidelines.messaging.messaging_structure),
   };
 }
 
@@ -74,8 +90,15 @@ function toPayload(f: FormState) {
     },
     brand_guidelines: {
       colors,
-      fonts: { display: f.displayFont || undefined, body: f.bodyFont || undefined },
+      fonts: { display: f.displayFont || undefined, body: f.bodyFont || undefined, mono: f.monoFont || undefined },
       content_pillars: lines(f.pillars),
+      messaging: {
+        brand_line: f.brandLine,
+        promise: f.promise,
+        message_pillars: lines(f.messagePillars),
+        methodology: lines(f.methodology),
+        messaging_structure: lines(f.messagingStructure),
+      },
     },
   };
 }
@@ -96,10 +119,20 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
   const [state, setState] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string }>({ kind: "idle" });
   const unconfigured = !brand.positioning && brand.voice_profile.principles.length === 0;
 
+  function loadDefaults() {
+    if (!unconfigured && !window.confirm("Replace everything in this form with the brand defaults? Nothing is saved until you click Save.")) {
+      return;
+    }
+    setForm(toForm({ ...ROSE_NJERU_DEFAULTS, positioning: ROSE_NJERU_DEFAULTS.positioning ?? null }));
+    setState({ kind: "idle", msg: "Defaults loaded into the form. Review, then save." });
+  }
+
   const bind = (key: keyof FormState, multiline = false) => ({
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [key]: e.target.value }),
-    className: multiline ? "input min-h-24" : "input",
+    className: "input",
+    // Grow with the content so every item is visible during review (3–14 rows).
+    ...(multiline ? { rows: textRows(form[key]) } : {}),
   });
 
   async function save(e: React.FormEvent) {
@@ -116,19 +149,28 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
 
   return (
     <form onSubmit={save} className="space-y-6">
-      {unconfigured && (
-        <div className="card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm">Start from the Rose Njeru Automation defaults, then edit before saving.</p>
-          <button type="button" className="btn-ghost" onClick={() => setForm(toForm({ ...ROSE_NJERU_DEFAULTS, positioning: ROSE_NJERU_DEFAULTS.positioning ?? null }))}>
-            Load defaults
-          </button>
-        </div>
-      )}
+      <div className="card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm">
+          Brand Identity &amp; Guidelines v{BRAND_DEFAULTS_VERSION}. Load it into the form, review, then save.
+        </p>
+        <button type="button" className="btn-ghost whitespace-nowrap" onClick={loadDefaults}>
+          Load brand defaults
+        </button>
+      </div>
 
       <fieldset className="card space-y-4">
         <legend className="font-display px-1 text-2xl">Identity</legend>
         <Field label="Brand name"><input required maxLength={120} {...bind("name")} /></Field>
         <Field label="Positioning"><textarea maxLength={2000} {...bind("positioning", true)} /></Field>
+      </fieldset>
+
+      <fieldset className="card space-y-4">
+        <legend className="font-display px-1 text-2xl">Messaging</legend>
+        <Field label="Brand line"><input maxLength={300} {...bind("brandLine")} /></Field>
+        <Field label="Brand promise"><input maxLength={300} {...bind("promise")} /></Field>
+        <Field label="Message pillars" hint="One per line as pillar: message"><textarea {...bind("messagePillars", true)} /></Field>
+        <Field label="Methodology" hint="Stages in order, one per line as stage: description"><textarea {...bind("methodology", true)} /></Field>
+        <Field label="Messaging structure" hint="The steps every piece follows, in order"><textarea {...bind("messagingStructure", true)} /></Field>
       </fieldset>
 
       <fieldset className="card space-y-4">
@@ -153,13 +195,14 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
         <legend className="font-display px-1 text-2xl">Visual guidelines and pillars</legend>
         <Field label="Content pillars" hint="One per line"><textarea {...bind("pillars", true)} /></Field>
         <Field label="Colours" hint="One per line as name: #RRGGBB"><textarea {...bind("colors", true)} /></Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Display font"><input {...bind("displayFont")} /></Field>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Editorial font"><input {...bind("displayFont")} /></Field>
           <Field label="Body font"><input {...bind("bodyFont")} /></Field>
+          <Field label="Mono font (metrics)"><input {...bind("monoFont")} /></Field>
         </div>
       </fieldset>
 
-      <div className="sticky bottom-4 flex items-center gap-4">
+      <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
         <button type="submit" className="btn-primary" disabled={state.kind === "saving"}>
           {state.kind === "saving" ? "Saving…" : "Save Brand DNA"}
         </button>

@@ -25,6 +25,6 @@ Last reviewed: 2026-11-26 (see docs/RECONNAISSANCE.md for evidence).
 | FFmpeg | LGPL-2.1+ (GPL if built with GPL parts) | Media worker binary, separate process | Allowed; use an LGPL build or keep as a separate executable |
 | yt-dlp | Unlicense | Download own videos only | Allowed; platform ToS still applies |
 | Playwright | Apache-2.0 | Carousel rendering | Allowed |
-| Cormorant Garamond, DM Sans, Plus Jakarta Sans | SIL OFL 1.1 | Carousel fonts | Allowed, embedding in exports permitted |
+| Cormorant Garamond, DM Sans, IBM Plex Mono | SIL OFL 1.1 | Brand typefaces (app UI, carousel exports) | Allowed, embedding in exports permitted |
 | Next.js, React, Zod, Supabase JS, Trigger.dev SDK | MIT / Apache-2.0 | Core app | Allowed |
 | Claude API, OpenAI API | Provider commercial terms | LLM providers | Allowed |

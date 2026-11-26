@@ -26,7 +26,7 @@ export function Nav() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={`whitespace-nowrap rounded-md px-3 py-2 text-sm ${
-              active ? "bg-[var(--accent)] text-white" : "hover:bg-black/5 dark:hover:bg-white/5"
+              active ? "bg-[var(--accent)] text-[var(--on-accent)]" : "hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
             {item.label}

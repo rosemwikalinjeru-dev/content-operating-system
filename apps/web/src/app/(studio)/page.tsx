@@ -21,7 +21,7 @@ export default async function DashboardPage() {
       </header>
 
       {!brandConfigured && (
-        <div className="card border-[var(--color-gold)]">
+        <div className="card border-l-4 border-l-[var(--color-gold)]">
           <p className="font-semibold">Brand DNA is not configured yet.</p>
           <p className="mb-3 text-sm text-muted">Generation in later phases uses your positioning and voice rules.</p>
           <Link href="/settings" className="btn-primary inline-block">
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="card block hover:border-[var(--accent)]">
-            <p className="font-display text-4xl">{s.value}</p>
+            <p className="metric text-4xl">{s.value}</p>
             <p className="text-sm text-muted">{s.label}</p>
           </Link>
         ))}
