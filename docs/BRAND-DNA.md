@@ -36,28 +36,28 @@ category. Update it, or other tools that read it will produce off-brand assets.
 | Messaging → methodology | v1.0 §9.1 (Diagnose → Strategise → Design → Implement → Optimise, looping back) |
 | Messaging → messaging structure | v1.0 §7.5 |
 | Voice → summary, tone | v1.0 §7.1–7.2 |
-| Voice → principles | v1.0 §1.3 and §7.2, plus §8.5 proof requirements; evidence rules **[earlier brand files]** |
+| Voice → principles | v1.0 §1.3, §7.2, §8.5, §10.4, §13.3 |
 | Voice → preferred phrases | v1.0 §7.3 |
 | Voice → banned phrases | v1.0 §7.4, plus banned vocabulary **[earlier brand files]** |
-| Voice → sentence style | v1.0 §4.4 (sentence case) plus voice rules 1–5 **[earlier brand files]** |
-| Audience (all) | **[earlier brand files]**; v1.0 does not define an audience |
+| Voice → sentence style | v1.0 §4.4 (sentence case) plus plain-voice rules **[earlier brand files]** |
+| Audience | v1.0 §1.1–1.2 (businesses and organisations), §7.5 (challenge example), §1.1 promise |
 | Content pillars | v1.0 §10.4 |
 | Colours, fonts | v1.0 §3.1, §4 |
 
 ### Carried over from the earlier files (not contradicted by v1.0)
 
-- Audience structure: owner-operators of service businesses whose revenue depends on
-  lead → response → booking → show-up → delivery → payment → rebooking.
-- Never publish a number that was not personally measured.
-- Admit the limit in the same breath as the claim; say "I don't know" when true.
-- Every case study names what did not change; every build names what was left manual.
-- Demo and fictional scenarios are labelled.
 - Banned vocabulary: insane, crazy, 10x, secret, hack, "nobody's talking about this", "here's the truth".
+- Sentence mechanics: lead with the finding, short declaratives, name real tools, no urgency devices.
+- Voice summary: "Direct and calm, never hyped."
+
+Removed at the owner's request (2026-11-26): the service-business audience definition
+(lead → response → booking → … chain) and the evidence rules (unmeasured numbers, "what did not
+change", "what was left manual", demo labelling). v1.0 governs both.
 
 ## Open items (owner decisions)
 
-- Audience: confirm whether v1.0's broader "organisations" framing should replace the service-business
-  audience, or narrow it. v1.0 never names an audience.
+- Audience segments: v1.0 does not name industries, so the segments list is empty. Add any the owner
+  wants targeted.
 - Font licensing: v1.0 lists the typefaces as recommendations pending approval. All three are SIL OFL
   1.1 (see THIRD-PARTY-LICENSES.md), so licensing does not block them.
 - Methodology name: v1.0 says not to invent an official name. ContentOS uses only the five stages.

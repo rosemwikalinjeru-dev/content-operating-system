@@ -5,9 +5,8 @@ import type { BrandProfileCreate } from "./brand";
  * Nothing is applied automatically: the owner reviews and saves it.
  *
  * Primary source: "Rose Njeru Automation — Brand Identity & Guidelines, Version 1.0,
- * November 2026" (docs/BRAND-DNA.md). Where v1.0 is silent (audience, some voice mechanics,
- * evidence rules), content is carried over from the earlier brand strategy files and is
- * marked "[earlier brand files]" in docs/BRAND-DNA.md.
+ * November 2026" (docs/BRAND-DNA.md). A few voice mechanics and banned words are carried over
+ * from earlier brand files; they are marked "[earlier brand files]" in docs/BRAND-DNA.md.
  */
 export const BRAND_DEFAULTS_VERSION = "1.0 (November 2026)";
 
@@ -20,30 +19,21 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
     "processes and technology. Automation and AI are capabilities within a broader approach to business " +
     "transformation, not the positioning.",
   audience: {
+    // v1.0 §1.1–1.2 and §7.5.
     primary:
-      "Owner-operators of service businesses (3–40 people, several tools already in use) whose revenue depends " +
-      "on the chain lead → response → booking → show-up → delivery → payment → rebooking.",
-    segments: [
-      "Gyms and studios",
-      "Salons",
-      "Clinics",
-      "Home services",
-      "Agencies",
-      "Professional services",
-      "Owners who already paid for automation and cannot tell if it worked",
-    ],
+      "Businesses and organisations that need to make better decisions, build better systems and achieve " +
+      "measurable results.",
+    segments: [],
     pains: [
-      "Customers complain about messages they never received",
-      "Leads that never get followed up",
-      "Payments left pending",
-      "No single system owns the state of a customer, so nothing notices when a step did not happen",
-      "The owner is the monitoring system and catches failures personally, from memory",
       "Disconnected processes create delays, duplicated work and poor visibility",
+      "Unclear what needs to improve or why",
+      "Technology adopted without a strategy or a measurable business outcome",
     ],
     desired_outcomes: [
-      "The business stops leaking without the owner watching it",
-      "Better decisions from clear, evidence-based information",
-      "Measurable improvement in business performance",
+      "Better decisions",
+      "Better systems",
+      "Measurable business results",
+      "Better business performance through better systems",
     ],
   },
   voice_profile: {
@@ -71,14 +61,11 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "Be clear: explain complex subjects in accessible language.",
       "Be commercially relevant: connect technology and strategy to business outcomes.",
       "Be analytical: use evidence, measurement and sound reasoning.",
-      "Challenge assumptions about practices, never people, and only with evidence.",
+      "Challenge assumptions: question ineffective business practices without becoming confrontational.",
       "Be practical: explain what should change and why.",
       "Avoid hype: do not exaggerate what AI or automation can achieve.",
-      "Never publish invented client results, unmeasured numbers or unsupported performance claims.",
-      "Admit the limit in the same breath as the claim; when you do not know, say so.",
-      "Every case study names what did not change; every build names what was deliberately left manual.",
-      "Label demo and fictional scenarios as such.",
-      "Do not make every post about AI or a promotional advertisement.",
+      "Do not publish invented client results or unsupported performance claims.",
+      "Avoid turning every post into a promotional advertisement.",
       "If any generic AI automation agency could publish it unchanged, it needs stronger differentiation.",
     ],
     preferred_phrases: [
@@ -116,8 +103,8 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "here's the truth",
     ],
     sentence_style:
-      "Lead with the business finding or consequence. Short declarative sentences. Numbers over adjectives, and " +
-      "only measured numbers. Name real tools, fields and behaviour. Sentence case headings. No urgency devices.",
+      "Lead with the business finding or consequence. Short declarative sentences. Name real tools, fields and " +
+      "behaviour. Sentence case headings. No urgency devices.",
   },
   brand_guidelines: {
     colors: {
