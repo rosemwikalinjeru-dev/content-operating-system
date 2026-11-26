@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Brand tokens (docs/ARCHITECTURE.md, carousel brand defaults). */
+@theme {
+  --color-night: #1a1a2e;
+  --color-teal: #1d9e75;
+  --color-gold: #c9a84c;
+  --color-linen: #f1efe8;
+  --color-violet: #7f77dd;
+  --color-charcoal: #2c2c2a;
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+:root {
+  --bg: var(--color-linen);
+  --surface: #ffffff;
+  --text: var(--color-charcoal);
+  --muted: #6b6a64;
+  --border: #dedbd0;
+  --accent: var(--color-teal);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--color-night);
+    --surface: #23233a;
+    --text: var(--color-linen);
+    --muted: #a9a8b8;
+    --border: #34344e;
+    --accent: #27b88a;
+    color-scheme: dark;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .font-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+  .text-muted { color: var(--muted); }
+  .eyebrow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 600; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; }
+  .input {
+    width: 100%; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--bg);
+    padding: 0.6rem 0.75rem; color: var(--text);
+  }
+  .input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn-primary {
+    border-radius: 0.5rem; background: var(--accent); color: #fff; padding: 0.6rem 1rem; font-weight: 600;
+  }
+  .btn-primary:disabled { opacity: 0.6; }
+  .btn-ghost { border-radius: 0.5rem; border: 1px solid var(--border); padding: 0.4rem 0.75rem; font-size: 0.875rem; }
+  .chip { border-radius: 999px; border: 1px solid var(--border); padding: 0.1rem 0.6rem; font-size: 0.75rem; color: var(--muted); }
+}

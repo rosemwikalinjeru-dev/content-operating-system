@@ -1,27 +1,23 @@
 # ContentOS — Implementation Plan
 
-Status: **awaiting approval**. Based on `docs/ARCHITECTURE.md` and `docs/RECONNAISSANCE.md`.
+Status: **approved — full system (2026-11-26)**. Phase 0 implemented; see PHASE-0-REPORT.md. Based on `docs/ARCHITECTURE.md` and `docs/RECONNAISSANCE.md`.
 
-## 0. Business framing (read first)
+## 0. Scope
 
-ContentOS is internal infrastructure. It does not generate revenue directly. The current
-business priority is the first $1,000 in three weeks, which comes from prospecting,
-conversations, discovery calls, audits and proposals. The full roadmap is 26–40 working days.
-Building all of it now would push client acquisition back by more than a month.
+Scope: **the full ContentOS system**, Phases 0–7 as defined in the specification. Phases are
+built in order, one at a time, and each phase must meet its exit condition (with real test
+results) before the next begins.
 
-So the plan is split into **slices**, each one usable on its own:
-
-| Slice | Scope | Effort | Business value |
-|---|---|---|---|
-| **Slice 1 — Written factory** | Phase 0 + Phase 1 + LinkedIn/X writers + basic editorial review | ~6–8 working days | Turns one idea into LinkedIn post + X thread in your voice. Supports authority content today. |
-| Slice 2 — Carousel | HTML carousel templates, slide editor, PNG/PDF export | ~3–5 days | Instagram/LinkedIn carousels without Canva work. |
-| Slice 3 — Research | ScrapeCreators adapter, competitor reports, idea inbox feed | ~3–5 days | Content ideas from audience pain points. |
-| Slice 4 — Video | Media worker, Whisper repurposing, Kokoro, Remotion | ~6–10 days | Saturday-challenge recordings → clips. |
-| Slice 5 — Analytics + hardening | Metrics, experiments, cost dashboards | ~3–5 days | Feedback loop. |
-
-Recommendation: build Slice 1 in time-boxed blocks **after** the daily prospecting block,
-and stop there until there is a paying client. Document the build publicly — it doubles
-as "build → debug → explain" proof-of-work content.
+| Phase | Scope | Estimate |
+|---|---|---|
+| 0 — Foundation | Workspace, schema, RLS, auth, storage, brand profile, idea inbox, API conventions | 2–3 days |
+| 1 — Content intelligence | Provider gateway, usage controller, Brand DNA retrieval, idea analysis, master brief, Trigger.dev jobs | 3–4 days |
+| 2 — Research intelligence | ScrapeCreators adapter, competitors, outliers, comment mining, schedules, reports | 3–5 days |
+| 3 — Multi-format writing | LinkedIn, X/threads, carousel narrative, video script, versioning | 3–4 days |
+| 4 — Editorial intelligence | Scoring, gates, originality, fact status, targeted revisions, eval suite | 3–4 days |
+| 5 — Visual and carousel | Visual director, templates, slide editor, image provider, PNG/PDF/ZIP | 3–5 days |
+| 6 — Video | Media worker, Whisper, Kokoro, original + repurposing pipelines, MP4/SRT | 6–10 days |
+| 7 — Performance | Calendar, publishing records, metric snapshots, insights, cost dashboard | 3–5 days |
 
 ## 1. Target folder structure (refined)
 
@@ -62,7 +58,7 @@ Rationale for merges: `knowledge-engine` and `brand-intelligence` share one data
 `media-engine` and `video-engine` share one renderer. Fewer packages = less wiring for one
 developer. `supabase/` replaces `database/` so the Supabase CLI works without config.
 
-## 2. Phase 0 — Foundation (Slice 1)
+## 2. Phase 0 — Foundation
 
 Exit condition: you can log in, configure your brand and save ideas.
 
@@ -78,7 +74,7 @@ Exit condition: you can log in, configure your brand and save ideas.
 | 0.8 | Idea Inbox: quick capture, tags, status | Idea saved < 5 s from open |
 | 0.9 | `/api/v1` conventions: Zod validation, structured error codes, request log, cursor pagination | Contract tests |
 
-## 3. Phase 1 — Content intelligence (Slice 1)
+## 3. Phase 1 — Content intelligence
 
 Exit condition: an idea becomes an approved, immutable structured brief.
 
@@ -92,7 +88,7 @@ Exit condition: an idea becomes an approved, immutable structured brief.
 | 1.6 | Trigger.dev setup; `production_jobs` + `job_steps`; idempotency keys; `GET /jobs/:id` |
 | 1.7 | Brief review UI, approve → immutable; edit after approval creates version n+1 |
 
-## 4. Phase 3-lite — Writers + editorial (Slice 1)
+## 4. Phases 3–4 — Writers + editorial
 
 | # | Task |
 |---|---|
@@ -103,36 +99,35 @@ Exit condition: an idea becomes an approved, immutable structured brief.
 | 4.3 | Accept/reject per suggestion; human approval; export (copy / markdown) |
 | 4.4 | Eval set: 30 fixtures of your strong posts + generic AI posts; score report saved per prompt version |
 
-**Slice 1 end-to-end test:** input "AI doesn't fix broken business processes. It makes them
+**Written-content end-to-end test:** input "AI doesn't fix broken business processes. It makes them
 faster." → analysis → brief → approve → LinkedIn post + X thread → independent reviews →
 revise one paragraph → approve → export, with every call's cost visible on the project.
 
-## 5. Later slices (summary)
+## 5. Remaining phases (summary)
 
-- **Slice 2 (Phase 5):** 5 HTML carousel templates, slide JSON schema, single-slide revise,
+- **Phase 5:** 5 HTML carousel templates, slide JSON schema, single-slide revise,
   Playwright render to 1080×1350 PNG + PDF + ZIP, readability gate (min font size, contrast).
-- **Slice 3 (Phase 2):** `ScrapeCreatorsResearchProvider`, competitor CRUD, baseline-relative
+- **Phase 2:** `ScrapeCreatorsResearchProvider`, competitor CRUD, baseline-relative
   outliers (needs ≥ N posts, else labelled "insufficient baseline"), comment mining,
   weekly schedule default, report → idea inbox. Agent-Reach optional, no-login channels only.
-- **Slice 4 (Phase 6):** media worker container + whisper/kokoro sidecars, upload validation
+- **Phase 6:** media worker container + whisper/kokoro sidecars, upload validation
   (magic bytes, size/duration limits), repurposing with spec rubric, original video pipeline
   via scene JSON → Remotion, MP4 + SRT export, resumable steps.
-- **Slice 5 (Phase 7):** calendar, publishing records, metric snapshots, cost dashboard.
+- **Phase 7:** calendar, publishing records, metric snapshots, cost dashboard.
 
 ## 6. Risks
 
 | Risk | Mitigation |
 |---|---|
-| Building replaces selling | Slice gating; time-box; stop after Slice 1 until a client signs |
 | Generated content sounds generic | Eval set before every prompt/model change; mandatory human approval |
 | LinkedIn account restriction from scraping | No logged-in scraping; ScrapeCreators only |
 | Cost overrun | Budget check is in the gateway, not the caller; hard stop + preserve work |
-| Video pipeline consumes the timeline | Video is Slice 4, explicitly after text is proven useful |
+| Video pipeline consumes the timeline | Video is Phase 6, after the text pipeline is proven |
 | Prompt injection via research content | Research text passed only as quoted data fields; agents have no tools beyond their schema |
 
 ## 7. Decisions needed from you before Phase 0 code
 
-1. Approve Slice 1 scope (or the full roadmap).
+1. ~~Approve scope~~ — approved: full system, 2026-11-26.
 2. Create a Supabase project and a Vercel project, and add keys as platform secrets (not in chat).
 3. Owner email for the auth allowlist (set as an env var, not committed).
 4. 15–30 of your best existing LinkedIn posts for the Brand DNA examples and the eval set.

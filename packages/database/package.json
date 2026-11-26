@@ -1,0 +1,13 @@
+{
+  "name": "@contentos/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": {
+    "@contentos/schemas": "workspace:*",
+    "@contentos/shared": "workspace:*",
+    "@supabase/supabase-js": "2.119.0"
+  }
+}
