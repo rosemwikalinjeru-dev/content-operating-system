@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 /** Magic-link landing: exchange the code for a session, then enforce the owner allowlist. */
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const site = env().NEXT_PUBLIC_SITE_URL;
+  const site = env().SITE_URL;
   if (!code) return NextResponse.redirect(new URL("/login?error=link_invalid", site));
 
   const supabase = await createClient();

@@ -65,7 +65,7 @@ pnpm lint
      emails; this closes the door at the Auth level too.
 4. Copy `apps/web/.env.example` to `apps/web/.env.local` and fill in the values for local runs.
    On Vercel, set the same variables in Project Settings → Environment Variables:
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`,
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SITE_URL`,
    `OWNER_EMAILS`.
 5. Run the app:
 

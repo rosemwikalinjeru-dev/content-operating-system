@@ -8,7 +8,7 @@ const url = z.string().trim().pipe(z.url());
 const EnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: url,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().trim().min(1),
-  NEXT_PUBLIC_SITE_URL: url,
+  SITE_URL: url,
   OWNER_EMAILS: z.string().default(""),
 });
 
@@ -30,7 +30,8 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
     NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       source.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? source.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_SITE_URL: source.NEXT_PUBLIC_SITE_URL,
+    // SITE_URL is server-only. NEXT_PUBLIC_SITE_URL is still accepted for older setups.
+    SITE_URL: source.SITE_URL ?? source.NEXT_PUBLIC_SITE_URL,
     OWNER_EMAILS: source.OWNER_EMAILS,
   });
   if (!parsed.success) {
@@ -48,6 +49,7 @@ export function env(): Env {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SITE_URL: process.env.SITE_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     OWNER_EMAILS: process.env.OWNER_EMAILS,
   });

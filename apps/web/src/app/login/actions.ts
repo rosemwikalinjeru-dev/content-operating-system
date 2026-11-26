@@ -34,7 +34,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data,
-      options: { emailRedirectTo: new URL("/auth/callback", e.NEXT_PUBLIC_SITE_URL).toString() },
+      options: { emailRedirectTo: new URL("/auth/callback", e.SITE_URL).toString() },
     });
     if (error) {
       logger.error("login_otp_failed", { ref, code: error.code, status: error.status, message: error.message });
