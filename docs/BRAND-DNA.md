@@ -54,6 +54,25 @@ Removed at the owner's request (2026-11-26): the service-business audience defin
 (lead → response → booking → … chain) and the evidence rules (unmeasured numbers, "what did not
 change", "what was left manual", demo labelling). v1.0 governs both.
 
+## Observed voice (from the owner's posts, 2026-11-26)
+
+Source: four posts in `tests/fixtures/voice/`. These govern the **voice register**; v1.0 governs
+positioning and visuals.
+
+- Opens with the hidden cost in one sentence.
+- Specific moments over concepts ("They messaged Friday night. You replied Monday.").
+- Everyday analogies (kitchen drawer vs garage; "Happy people make dinner.").
+- Two-line reframe ("That's not a reputation problem. It's an asking problem.").
+- One-line paragraphs, fragments for rhythm, numbered scenes.
+- Aphoristic close ("Boring and frequent beats big and complicated.").
+- Signature ending: one action for today, often a question to ask the team.
+- AI is rarely mentioned; the business problem carries the post.
+
+**Register tension:** v1.0's preferred vocabulary (strategic transformation, business
+intelligence) is more executive than the posts. Resolution: use it where natural; never force it
+into social content. The interview story's freelance call to action conflicts with v1.0
+positioning and is excluded as a pattern.
+
 ## Open items (owner decisions)
 
 - Audience segments: v1.0 does not name industries, so the segments list is empty. Add any the owner

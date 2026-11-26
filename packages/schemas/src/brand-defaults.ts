@@ -40,7 +40,8 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
     summary:
       "Strategic, analytical and commercially aware. Explains complex subjects in accessible language, connects " +
       "technology to business outcomes, challenges ineffective practices without becoming confrontational, and " +
-      "never exaggerates what AI or automation can do. Direct and calm, never hyped.",
+      "never exaggerates what AI or automation can do. Direct and calm, never hyped. On social, writes owner to " +
+      "owner: plain words, specific everyday moments and analogies, short lines, one small action to take today.",
     tone: [
       "Strategic",
       "Analytical",
@@ -50,6 +51,7 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "Forward-looking",
       "Practical",
       "Dependable",
+      "Plain-spoken",
     ],
     principles: [
       "Business value over activity: work must have a clear business purpose.",
@@ -67,6 +69,13 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "Do not publish invented client results or unsupported performance claims.",
       "Avoid turning every post into a promotional advertisement.",
       "If any generic AI automation agency could publish it unchanged, it needs stronger differentiation.",
+      // Observed in the owner's own posts (tests/fixtures/voice).
+      "Open with the cost the reader cannot see, in one sentence.",
+      "Show specific moments, not concepts: the call nobody returned, the price sent on Tuesday.",
+      "Explain with everyday analogies: the kitchen drawer, not the garage.",
+      "Reframe the problem in two short lines: \"That's not a reputation problem. It's an asking problem.\"",
+      "End with one small action the reader can take today, often a question to ask their team.",
+      "Use v1.0 preferred vocabulary where it fits naturally; never force it into social posts.",
     ],
     preferred_phrases: [
       "Business performance",
@@ -81,6 +90,7 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "Responsible AI adoption",
       "Continuous improvement",
       "Evidence-based decisions",
+      "Today, ask your team",
     ],
     banned_phrases: [
       "AI-powered",
@@ -103,8 +113,9 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "here's the truth",
     ],
     sentence_style:
-      "Lead with the business finding or consequence. Short declarative sentences. Name real tools, fields and " +
-      "behaviour. Sentence case headings. No urgency devices.",
+      "Lead with the business consequence. Short declarative sentences; one-line paragraphs and fragments for " +
+      "rhythm. Numbered scenes with one quoted line each. Close with a short, memorable line, then a single action " +
+      "for today. Name real tools and behaviour. Sentence case headings. No urgency devices.",
   },
   brand_guidelines: {
     colors: {
