@@ -2,7 +2,7 @@
 
 Date: 2026-11-26
 Exit condition: *"You can log in, configure your brand and save ideas."*
-Status: **implemented and tested locally; end-to-end demonstration blocked on a Supabase project.**
+Status: **COMPLETE — exit condition demonstrated by the owner on the live deployment, 2026-11-26.**
 
 ## 1. Files created
 
@@ -114,7 +114,33 @@ enough for Phase 0–1.
 4. Database types are hand-written; switch to `supabase gen types` once the project is linked.
 5. `content_embeddings` (pgvector) is deferred to Phase 1.
 
-## 9. Remaining to close Phase 0
+## 9. Exit-condition demonstration (2026-11-26)
+
+Performed by the owner on the live Vercel deployment against the production Supabase project:
+
+| Check | Result |
+|---|---|
+| Magic-link sign-in with allowlisted email | Passed |
+| New sign-ups disabled in Supabase Auth | Done |
+| Brand DNA loaded from v1.0 defaults, saved, persisted after reload | Passed |
+| Idea saved, archived, restored; dashboard count updated | Passed |
+| `content_ideas` row visible in Supabase with RLS enabled | Passed |
+
+Cross-account isolation is covered by the 24 database tests (RLS, composite foreign keys).
+CI passed on GitHub for every push.
+
+### Issues found during deployment and fixed
+
+1. Sign-in crashed with a generic error when configuration was invalid → env values trimmed,
+   bad variable names reported, the sign-in action never throws.
+2. `NEXT_PUBLIC_SITE_URL` renamed to server-only `SITE_URL` (old name still accepted).
+3. Supabase Site URL was set to the Vercel dashboard address instead of the app's `.vercel.app`
+   domain → magic link landed on Vercel's 404. Configuration fix; README clarifies which address.
+4. Auth codes arriving on a path other than `/auth/callback` are now forwarded to it.
+5. Settings: sticky save bar overlapped the form; text areas truncated long lists; dark-mode
+   button text failed WCAG contrast. All fixed.
+
+## 10. Previously remaining (now done)
 
 1. You create the Supabase project, run `supabase db push`, configure Auth as in the README,
    and set the four environment variables (locally or on Vercel).

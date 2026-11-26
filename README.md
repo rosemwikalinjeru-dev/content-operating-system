@@ -2,8 +2,8 @@
 
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
-**Status:** Phase 0 (Foundation) implemented and tested locally. Waiting on a Supabase project
-to demonstrate the exit condition end-to-end. See [Phase 0 report](docs/PHASE-0-REPORT.md).
+**Status:** Phase 0 (Foundation) complete and live. Phase 1 (Content intelligence) next.
+See [Phase 0 report](docs/PHASE-0-REPORT.md).
 
 - [Architecture](docs/ARCHITECTURE.md) · [Reconnaissance](docs/RECONNAISSANCE.md) ·
   [Implementation plan](docs/IMPLEMENTATION-PLAN.md) · [API contracts](docs/API-CONTRACTS.md) ·
@@ -61,6 +61,8 @@ pnpm lint
 3. In Supabase → Authentication:
    - Enable the Email provider (magic link).
    - Set **Site URL** to your app URL and add `<app-url>/auth/callback` to the redirect allowlist.
+     The app URL is the `https://<name>.vercel.app` domain shown under Domains in Vercel, **not**
+     the `vercel.com/<team>/<project>` dashboard address.
    - After your first sign-in, **disable new sign-ups**. The app allowlist already blocks other
      emails; this closes the door at the Auth level too.
 4. Copy `apps/web/.env.example` to `apps/web/.env.local` and fill in the values for local runs.
