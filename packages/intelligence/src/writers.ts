@@ -36,7 +36,7 @@ ${CRAFT_RULES}`;
 export const FORMAT_WRITERS: Record<ContentFormat, PromptTemplate> = {
   linkedin: {
     name: "writer-linkedin",
-    version: 3,
+    version: 4,
     text: `${SHARED}
 
 Format: a LinkedIn text post.
@@ -46,7 +46,7 @@ Format: a LinkedIn text post.
   },
   x_thread: {
     name: "writer-x-thread",
-    version: 3,
+    version: 4,
     text: `${SHARED}
 
 Format: an X thread.
@@ -57,7 +57,7 @@ Format: an X thread.
   },
   carousel: {
     name: "writer-carousel",
-    version: 3,
+    version: 4,
     text: `${SHARED}
 
 Format: a carousel narrative (text only; design is done later).
@@ -68,7 +68,7 @@ Format: a carousel narrative (text only; design is done later).
   },
   short_video: {
     name: "writer-short-video",
-    version: 3,
+    version: 4,
     text: `${SHARED}
 
 Format: a short vertical video script (under 60 seconds, the owner speaking to camera, with screen recordings where useful).
@@ -102,7 +102,7 @@ export function buildWriterRequest(
 
 export const SECTION_REVISER: PromptTemplate = {
   name: "section-reviser",
-  version: 2,
+  version: 3,
   text: `You revise exactly one section of a draft, following the owner's instruction.
 
 - Change only the target section. The other sections are context; they stay as they are.

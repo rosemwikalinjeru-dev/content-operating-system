@@ -68,3 +68,19 @@ describe("AI-content traps", () => {
     expect(msgs.some((m) => m.startsWith("Formula ending"))).toBe(true);
   });
 });
+
+describe("habits the reviewer flagged on the first live draft", () => {
+  const draft = (text: string) =>
+    toDraftBody("linkedin", { sections: [{ kind: "paragraph", text, headline: null, on_screen: null, broll: null }], single_point: "", cover_test: "" }).sections;
+
+  it("warns on the published reframe construction and on scenario disclaimers", () => {
+    expect(checkDraft("linkedin", draft("That's not a tooling problem. It's a measuring problem.")).map((c) => c.message).join(" ")).toMatch(/reframe/);
+    expect(checkDraft("linkedin", draft("This is a typical scenario, not a client story.")).map((c) => c.message).join(" ")).toMatch(/disclaimer/);
+    expect(checkDraft("linkedin", draft("Your client's details arrive at 9am.")).filter((c) => /reframe|disclaimer/.test(c.message))).toEqual([]);
+  });
+
+  it("the rules ban the reframe and require the opening scene to carry through", () => {
+    expect(CRAFT_RULES).toContain("Never use the reframe");
+    expect(CRAFT_RULES).toContain("Carry the opening moment through");
+  });
+});

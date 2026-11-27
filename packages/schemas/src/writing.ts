@@ -105,6 +105,15 @@ export function checkDraft(format: ContentFormat, sections: DraftSection[]): Dra
     const hits = AI_JARGON.filter((j) => new RegExp(`[^a-z]${j.replace("-", "[- ]?")}(s|d|ing|ed)?[^a-z]`).test(t));
     if (hits.length) warn(`Jargon no one says out loud: ${hits.join(", ")}. Use the reader's words.`, s.key);
   }
+  for (const s of sections) {
+    const t = s.text.toLowerCase().replace(/[’]/g, "'");
+    if (/(that's|that is|it's|this is|isn't|is not) (not )?an? [a-z ]{2,30} problem[.,]? (it's|it is) an? [a-z ]{2,30} problem/.test(t)) {
+      warn('The "not an X problem, a Y problem" reframe is already in your published posts. Find the turn in the scene instead.', s.key);
+    }
+    if (/(typical|hypothetical|composite|made[- ]up) (scenario|example|story)|not a (real )?client story/.test(t)) {
+      warn("A disclaimer interrupts the scene. Write it about the reader (\"your client…\") instead of announcing it.", s.key);
+    }
+  }
   const last = sections[sections.length - 1];
   if (last) {
     const t = last.text.toLowerCase();

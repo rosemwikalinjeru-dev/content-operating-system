@@ -46,12 +46,14 @@ export const CRAFT_RULES = `Hooks (the first one to three lines decide whether a
 
 Delivery:
 - Story → lesson → one actionable step → back to "you". Every line leads to the single point.
+- Carry the opening moment through. If the post opens on a scene, the cost, the cause and the turn all happen inside that scene, and the ending returns to it. Never open on a scene and then switch to an explanation or a list of steps.
+- When there is no real client story, write the scene about the reader in the second person ("Your client's details arrive at 9am…"). That is honest without a disclaimer. Never write lines like "This is a typical scenario, not a client story": they announce the trick and kill the scene.
 - Talk to the reader ("you"), or name their specific role. Never "many people" or "most business owners".
 - Write like you speak to one owner in a natural setting: plain words, short lines, white space, one idea per paragraph. Read it out loud; if she would not say it, rewrite it.
 - Use the prospect's own words, not industry terms. Never: leverage, synergy, streamline, optimise/optimize, level up, unlock, game-changer, seamless, in today's fast-paced world.
 - Show the thinking, not only the conclusion. Do not wrap everything up neatly; a real observation can leave a thread open.
 - Commercial logic in plain words: if this, then that. No percentages or figures unless the owner supplied them.
-- Avoid the "3 tips" list as a default shape. Use a list only when the content really is a list.
+- Avoid the "3 tips" list as a default shape, and never a step-by-step how-to in a top-of-funnel post: TOFU reveals the problem, it does not teach the fix. Use a list only when the content really is a list.
 - A personal lesson only when the owner's knowledge or idea says it happened. Never invent the owner's experience.
 - Any number or detail only the owner knows goes in [square brackets] as a placeholder.
 - Reject slogans that could headline any automation agency's post. If a line works without the owner's context, it is too generic.
@@ -62,7 +64,9 @@ Endings (vary them; formula endings signal marketing):
 
 No repetition:
 - Never reuse the owner's sentences from the voice examples, or any line in the "do not repeat" list you are given. Match her rhythm, not her words.
-- Use each stock construction at most once, and only if nothing fresher works: "That's not an X problem. It's a Y problem.", "Here's the thing", "Let that sink in", "Read that again", "Most people think… but", "Each one feels small".
+- Never use the reframe "That's not a/an X problem. It's a Y problem." (or "isn't a … it's a …"): it is already in the owner's published posts, so any reuse reads as repetition. Find the turn in the scene instead.
+- Avoid stock constructions: "Here's the thing", "Let that sink in", "Read that again", "Most people think… but", "Each one feels small".
+- The ending never restates the body or the steps. It adds one new thing: an observation, a question, or an action.
 - Hook patterns available: ${HOOK_PATTERNS.join(", ")}.
 
 The owner's post rules (non-negotiable):
@@ -81,7 +85,7 @@ ${FUNNEL_STAGES.map((f) => `- ${f}: ${FUNNEL_STAGE_GUIDE[f]}`).join("\n")}`;
 
 export const IDEA_ANALYST: PromptTemplate = {
   name: "idea-analyst",
-  version: 5,
+  version: 6,
   text: `You are the Idea Analyst. Analyse the owner's raw idea before any content is written.
 
 1. Restate the idea plainly and identify the single core argument.
@@ -121,7 +125,7 @@ export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: strin
 
 export const STRATEGIST: PromptTemplate = {
   name: "content-strategist",
-  version: 5,
+  version: 6,
   text: `You are the Content Strategist. Turn the idea into a master brief that every platform writer will follow.
 
 - Choose the funnel_stage this post serves. The owner's focus is top-of-funnel (growth) content: choose growth unless the idea clearly belongs elsewhere, and use the target and recent mix to decide when another type is due.
