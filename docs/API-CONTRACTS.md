@@ -103,7 +103,7 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening?, format_writing?, section_revision?, editorial_review?, rule_proposal? }`, each one of
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening?, format_writing?, section_revision?, editorial_review?, rule_proposal?, visual_direction?, slide_revision? }`, each one of
 `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` (defaults: Sonnet, except research labelling: Haiku).
 
 ### `GET /api/v1/usage`
@@ -185,6 +185,35 @@ Endpoints:
   - `POST` takes `{ rule }`. A rule the owner writes is approved immediately.
   - `PATCH` takes `{ status: approved | rejected | disabled }`.
   - Rules proposed from hand edits wait as `proposed` until the owner approves them.
+
+## Phase 5 endpoints (carousel design)
+
+A slide is `{ id: "d1".., layout: cover|statement|list|before_after|diagram|screenshot|closing, kicker, headline, body, items[], before, after, emphasis[], visual: none | diagram{nodes, edges} | screenshot{media_id, caption} }`. Designs are immutable versions per carousel asset.
+
+- `POST /api/v1/assets/:id/design` takes `{ version?, template? }` and returns `202` with a `design_carousel` job.
+  - It designs from the narrative version given, otherwise the approved version, otherwise the latest.
+  - `template` is one of `statement`, `before_after`, `process`, `screenshot` or `notebook`; leave it out and the director chooses.
+- `GET /api/v1/assets/:id/designs` returns `{ data: [design + issues[]], exports[] }`, with designs newest first. `issues` is the readability result for each slide.
+- `POST /api/v1/assets/:id/designs` takes `{ base_version, template, slides[3–12] (without ids), note? }`.
+  - It saves the owner's edits as a new version.
+  - Slides are renumbered `d1..dN` in the order given.
+- `GET /api/v1/designs/:id/slides/:slide` returns a PNG preview. It is privately cacheable, because designs never change.
+- `POST /api/v1/designs/:id/revise-slide` takes `{ slide, instruction }` and returns `202` with a `revise_slide` job.
+  - Only that slide changes.
+  - Cover and closing layouts stay in the first and last positions.
+- `POST /api/v1/designs/:id/screenshot` takes a multipart upload with `slide`, `file` (PNG or JPEG, up to 5 MB, detected from the file's bytes) and `rights=yes`.
+  - The file is stored in the owner's private uploads folder.
+  - It creates a new design version with the image attached.
+- `POST /api/v1/designs/:id/export` takes `{ override_reason? }`.
+  - It renders 1080×1350 PNGs, one PDF and a ZIP into the private renders bucket, and returns 10-minute signed links.
+  - It returns `409` while a readability check fails, unless `override_reason` (at least 5 characters) is given; the reason is recorded with the export.
+
+Readability checks:
+- **overflow**: text does not fit its box.
+- **font_too_small**: content text is under 28px.
+- **low_contrast**: below WCAG AA, which is 4.5:1, or 3:1 for text of 64px or more.
+- **too_many_words**: more than 25 words on a slide.
+- **missing_screenshot**: a screenshot slide has no image.
 
 ## Types
 

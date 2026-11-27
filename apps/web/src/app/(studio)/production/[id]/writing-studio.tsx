@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { JobProgress } from "@/components/job-progress";
 import { apiFetch } from "@/lib/api-client";
+import { DesignStudio } from "./design-studio";
 import { ReviewPanel } from "./review-panel";
 
 const KIND_LABEL: Record<DraftSection["kind"], string> = {
@@ -223,6 +224,8 @@ function AssetPanel({ asset, onJob, onChange }: { asset: ContentAssetView; onJob
           ))}
         </ol>
       )}
+
+      {asset.format === "carousel" && <DesignStudio assetId={asset.id} />}
 
       <details className="card text-sm">
         <summary className="cursor-pointer font-semibold">Self-check</summary>

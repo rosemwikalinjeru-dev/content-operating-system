@@ -8,6 +8,7 @@ import type { JobType } from "@contentos/schemas";
 import { NonRetryableJobError, runAnalyzeIdea, runGenerateBrief, type PipelineDeps, type RunOptions } from "./pipeline";
 import { runResearchSweep, type ResearchDeps } from "./research";
 import { runProposeRules, runReviewVersion } from "./editorial";
+import { runDesignCarousel, runReviseSlide } from "./visual";
 import { runReviseSection, runWriteContent } from "./writing";
 import { pipelineDeps, researchDeps } from "./runtime";
 
@@ -19,6 +20,8 @@ const PIPELINES: Record<JobType, (deps: PipelineDeps, jobId: string, opts: RunOp
   revise_section: runReviseSection,
   review_version: runReviewVersion,
   propose_rules: runProposeRules,
+  design_carousel: runDesignCarousel,
+  revise_slide: runReviseSlide,
 };
 
 function withResearch(deps: PipelineDeps): ResearchDeps {

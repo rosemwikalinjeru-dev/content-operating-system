@@ -11,6 +11,8 @@ export default defineConfig({
             "server-only": resolve(import.meta.dirname, "tests/stubs/empty.ts"),
           },
         },
+        // Same JSX transform as Next.js (the slide renderer is TSX).
+        esbuild: { jsx: "automatic" },
         test: {
           name: "unit",
           include: ["packages/**/*.test.ts", "apps/web/src/**/*.test.ts", "jobs/src/**/*.test.ts", "evals/**/*.test.ts"],

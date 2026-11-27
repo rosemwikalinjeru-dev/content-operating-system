@@ -2,6 +2,7 @@ import { AbortTaskRunError, task } from "@trigger.dev/sdk";
 import { NonRetryableJobError, runAnalyzeIdea, runGenerateBrief } from "../pipeline";
 import { runResearchSweep } from "../research";
 import { runProposeRules, runReviewVersion } from "../editorial";
+import { runDesignCarousel, runReviseSlide } from "../visual";
 import { runReviseSection, runWriteContent } from "../writing";
 import { pipelineDeps, researchDeps } from "../runtime";
 
@@ -85,5 +86,23 @@ export const proposeRulesTask = task({
   retry,
   run: async (payload: JobPayload, { ctx }) => {
     await guard(() => runProposeRules(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
+  },
+});
+
+export const designCarouselTask = task({
+  id: "design-carousel",
+  maxDuration: 300,
+  retry,
+  run: async (payload: JobPayload, { ctx }) => {
+    await guard(() => runDesignCarousel(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
+  },
+});
+
+export const reviseSlideTask = task({
+  id: "revise-slide",
+  maxDuration: 300,
+  retry,
+  run: async (payload: JobPayload, { ctx }) => {
+    await guard(() => runReviseSlide(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
   },
 });

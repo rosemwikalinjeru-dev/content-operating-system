@@ -2,7 +2,7 @@
 
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
-**Status:** Phases 0 and 1 complete and live. Phase 2 (Research) accepted ([report](docs/PHASE-2-REPORT.md)); Phase 3 (Multi-format writing) built ([report](docs/PHASE-3-REPORT.md)); Phase 4 (Editorial intelligence) built, awaiting the exit check ([report](docs/PHASE-4-REPORT.md));
+**Status:** Phases 0 and 1 complete and live. Phase 2 (Research) accepted ([report](docs/PHASE-2-REPORT.md)); Phase 3 (Multi-format writing) built ([report](docs/PHASE-3-REPORT.md)); Phase 4 (Editorial intelligence) built ([report](docs/PHASE-4-REPORT.md)); Phase 5 (Visual and carousel) built, awaiting the exit check ([report](docs/PHASE-5-REPORT.md));
 background jobs run inline on Vercel (Plan B). See [Phase 0 report](docs/PHASE-0-REPORT.md) and
 [Phase 1 report](docs/PHASE-1-REPORT.md).
 
@@ -126,6 +126,12 @@ To run the editorial eval, add the repository secret `ANTHROPIC_API_KEY` (GitHub
 Secrets and variables → Actions), then run **Actions → Editorial eval → Run workflow**. Add your
 strongest posts as `.md` files in `evals/editorial/owner-posts/` first; the report is attached to
 the run.
+
+## Carousel design — Phase 5
+
+Apply `supabase/migrations/20261201000100_visual.sql` in the Supabase SQL Editor. Exports use the
+existing `SUPABASE_SERVICE_ROLE_KEY` (server-side) to write to the private `renders` bucket. No
+new secrets.
 
 ## Vercel
 

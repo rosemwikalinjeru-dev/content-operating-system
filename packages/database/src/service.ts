@@ -395,3 +395,4 @@ export async function insertUsage(db: ServiceClient, row: Record<string, unknown
 export * from "./research-service";
 export * from "./writing-service";
 export * from "./editorial-service";
+export * from "./visual-service";

@@ -6,3 +6,4 @@ export * from "./intelligence";
 export * from "./research";
 export * from "./writing";
 export * from "./editorial";
+export * from "./visual";

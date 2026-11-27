@@ -72,6 +72,21 @@ export const DEFAULT_ROUTES: Record<TaskType, ModelRoute> = {
     maxTokens: 3_000,
     expectedOutputTokens: 500,
   },
+  // Carousel narrative -> slide layouts, emphasis and diagrams.
+  visual_direction: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "low",
+    maxTokens: 8_000,
+    expectedOutputTokens: 2_000,
+  },
+  slide_revision: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "low",
+    maxTokens: 3_000,
+    expectedOutputTokens: 500,
+  },
   master_brief: {
     provider: "anthropic",
     model: "claude-sonnet-5-5",

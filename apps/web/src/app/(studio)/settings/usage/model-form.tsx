@@ -21,6 +21,8 @@ const TASKS: Array<{ key: keyof ModelRoutes; label: string; hint: string }> = [
   { key: "section_revision", label: "Section revision", hint: "Rewrites one section on request" },
   { key: "editorial_review", label: "Editorial review", hint: "Scores every draft; Opus gives a more independent view" },
   { key: "rule_proposal", label: "Voice rule proposals", hint: "Learns rules from your edits (Haiku is enough)" },
+  { key: "visual_direction", label: "Carousel design", hint: "Turns a carousel narrative into slides" },
+  { key: "slide_revision", label: "Slide revision", hint: "Rewrites one slide on request" },
 ];
 
 export function ModelForm({ routes }: { routes: ModelRoutes }) {
@@ -35,6 +37,8 @@ export function ModelForm({ routes }: { routes: ModelRoutes }) {
     section_revision: routes.section_revision ?? "claude-sonnet-5-5",
     editorial_review: routes.editorial_review ?? "claude-sonnet-5-5",
     rule_proposal: routes.rule_proposal ?? "claude-haiku-5-5",
+    visual_direction: routes.visual_direction ?? "claude-sonnet-5-5",
+    slide_revision: routes.slide_revision ?? "claude-sonnet-5-5",
   });
   const [state, setState] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string }>({ kind: "idle" });
 

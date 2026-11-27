@@ -17,7 +17,12 @@ const config: NextConfig = {
     "@contentos/provider-gateway",
     "@contentos/schemas",
     "@contentos/shared",
+    "@contentos/visual",
   ],
+  // Slide fonts are read from disk at render time; make sure they ship with the functions.
+  outputFileTracingIncludes: {
+    "/api/v1/designs/**": ["./src/render/fonts/**"],
+  },
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

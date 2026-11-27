@@ -22,6 +22,8 @@ const STEP_LABELS: Record<string, string> = {
   revising: "Revising the section",
   reviewing: "Reviewing the draft",
   learning_rules: "Learning from your edits",
+  designing: "Designing the slides",
+  revising_slide: "Revising the slide",
   done: "Done",
 };
 
@@ -29,11 +31,14 @@ const STEP_LABELS: Record<string, string> = {
  * Polls a background job until it finishes, then refreshes the page's server data.
  * Shows progress, cost and a readable error (with a budget link when relevant).
  */
-export function JobProgress({ jobId, label }: { jobId: string; label: string }) {
+export function JobProgress({ jobId, label, onDone }: { jobId: string; label: string; onDone?: () => void }) {
   const router = useRouter();
   const [job, setJob] = useState<JobView | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const refreshed = useRef(false);
+  // Kept in a ref so a new callback never restarts polling.
+  const done = useRef(onDone);
+  done.current = onDone;
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +55,7 @@ export function JobProgress({ jobId, label }: { jobId: string; label: string }) 
           if (next.status === "completed" && !refreshed.current) {
             refreshed.current = true;
             router.refresh();
+            done.current?.();
           }
           return;
         }

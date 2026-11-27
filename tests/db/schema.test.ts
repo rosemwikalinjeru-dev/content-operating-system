@@ -13,7 +13,7 @@ const RLS_TABLES = [
   "prompt_templates", "content_projects", "content_briefs", "production_jobs", "job_steps",
   "content_assets", "content_versions", "carousel_slides", "media_assets", "quality_reviews",
   "publishing_records", "performance_metrics", "provider_usage", "research_queries",
-  "review_suggestions", "gate_overrides", "learned_rules",
+  "review_suggestions", "gate_overrides", "learned_rules", "carousel_designs",
 ];
 
 beforeAll(async () => {

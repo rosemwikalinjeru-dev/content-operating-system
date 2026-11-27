@@ -1,6 +1,6 @@
 # Phase 5 — Visual and Carousel: Brief
 
-Status: **proposed (2026-11-27), awaiting owner approval.**
+Status: **approved (2026-11-27), including the next/og rendering change; built — see PHASE-5-REPORT.md.**
 Exit condition: *an approved carousel narrative becomes designed slides in the brand's look. The
 owner can edit, reorder or revise one slide, and exports PNG, PDF (ready for LinkedIn's document
 post) and ZIP. Every slide passes a readability check before export.*
