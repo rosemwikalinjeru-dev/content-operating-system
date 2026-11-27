@@ -7,7 +7,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { AppError, fromDatabaseError } from "@contentos/shared";
-import { normaliseBrand, type BrandProfile, type KnowledgeEntry, type UserSettings } from "@contentos/schemas";
+import { normaliseBrand, readModelRoutes, type BrandProfile, type KnowledgeEntry, type UserSettings } from "@contentos/schemas";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ServiceClient = SupabaseClient<any, "public", "public", any, any>;
@@ -148,7 +148,7 @@ export async function loadBrand(db: ServiceClient, userId: string, brandId: stri
 export async function loadSettings(db: ServiceClient, userId: string): Promise<UserSettings> {
   const { data, error } = await db
     .from("user_settings")
-    .select("budget_text_project_usd, budget_media_project_usd, budget_daily_usd, budget_monthly_usd")
+    .select("budget_text_project_usd, budget_media_project_usd, budget_daily_usd, budget_monthly_usd, preferences")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw fromDatabaseError(error);
@@ -158,6 +158,7 @@ export async function loadSettings(db: ServiceClient, userId: string): Promise<U
     budget_media_project_usd: Number(data.budget_media_project_usd),
     budget_daily_usd: Number(data.budget_daily_usd),
     budget_monthly_usd: Number(data.budget_monthly_usd),
+    model_routes: readModelRoutes(data.preferences),
   };
 }
 

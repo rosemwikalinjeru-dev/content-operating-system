@@ -103,7 +103,8 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000).
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief? }`, each one of
+`claude-opus-5-5`, `claude-sonnet-5-5` (default), `claude-haiku-5-5`.
 
 ### `GET /api/v1/usage`
 `{ today_usd, month_usd, calls_this_month, by_task[], recent[], budgets }` (UTC windows).

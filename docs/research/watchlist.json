@@ -1,6 +1,6 @@
 {
   "source": "Owner-supplied list, 2026-11-27",
-  "note": "Profile URLs and platforms to be confirmed before monitoring is configured.",
+  "note": "Profile URLs supplied by the owner on 2026-11-27 (tracking parameters removed). Still missing: Nate Herk, Nick Saraev, Isabella Bedoya, Chris Donnelly.",
   "competitors": [
     {
       "name": "Nate Herk",
@@ -34,7 +34,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/liamottley/"
         }
       ]
     },
@@ -58,7 +58,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/alliekmiller/"
         }
       ]
     },
@@ -70,7 +70,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/emollick/"
         }
       ]
     },
@@ -94,7 +94,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/alexhormozi/"
         }
       ]
     },
@@ -106,7 +106,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/justinwelsh/"
         }
       ]
     },
@@ -118,7 +118,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/katebour/"
         }
       ]
     },
@@ -130,7 +130,7 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/alex-lieberman/"
         }
       ]
     },
@@ -142,7 +142,31 @@
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/sabrinaramonov/"
+        }
+      ]
+    },
+    {
+      "name": "Lara Acosta",
+      "relationship": "craft_benchmark",
+      "priority": null,
+      "study_focus": "Added by owner 2026-11-27; study focus to confirm",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": "https://www.linkedin.com/in/laraacostar/"
+        }
+      ]
+    },
+    {
+      "name": "Megan Lieu",
+      "relationship": "positioning_benchmark",
+      "priority": null,
+      "study_focus": "Added by owner 2026-11-27; relationship and study focus to confirm",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": "https://www.linkedin.com/in/meganlieu/"
         }
       ]
     }

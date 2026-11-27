@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 
-const FIELDS: Array<{ key: keyof UserSettings; label: string; hint: string }> = [
+type BudgetKey = Exclude<keyof UserSettings, "model_routes">;
+
+const FIELDS: Array<{ key: BudgetKey; label: string; hint: string }> = [
   { key: "budget_text_project_usd", label: "Per text project", hint: "Briefs and written content for one project" },
   { key: "budget_media_project_usd", label: "Per media project", hint: "Used from Phase 5 (images, voice, video)" },
   { key: "budget_daily_usd", label: "Per day", hint: "All AI calls, UTC day" },
@@ -15,7 +17,7 @@ const FIELDS: Array<{ key: keyof UserSettings; label: string; hint: string }> = 
 export function BudgetForm({ settings }: { settings: UserSettings }) {
   const router = useRouter();
   const [values, setValues] = useState(() =>
-    Object.fromEntries(FIELDS.map((f) => [f.key, String(settings[f.key])])) as Record<keyof UserSettings, string>,
+    Object.fromEntries(FIELDS.map((f) => [f.key, String(settings[f.key])])) as Record<BudgetKey, string>,
   );
   const [state, setState] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string }>({ kind: "idle" });
 

@@ -252,12 +252,24 @@ export interface KnowledgeEntry {
 
 const Usd = z.number().min(0).max(10_000);
 
+/** Models the owner may assign to a task in Settings. Keep in sync with provider-gateway ALLOWED_MODELS. */
+export const MODEL_CHOICES = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"] as const;
+export const ModelChoice = z.enum(MODEL_CHOICES);
+export type ModelChoice = z.infer<typeof ModelChoice>;
+
+export const ModelRoutes = z.object({
+  idea_analysis: ModelChoice.optional(),
+  master_brief: ModelChoice.optional(),
+});
+export type ModelRoutes = z.infer<typeof ModelRoutes>;
+
 export const SettingsUpdate = z
   .object({
     budget_text_project_usd: Usd,
     budget_media_project_usd: Usd,
     budget_daily_usd: Usd,
     budget_monthly_usd: Usd,
+    model_routes: ModelRoutes,
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0, "At least one field must be provided");
@@ -268,6 +280,15 @@ export interface UserSettings {
   budget_media_project_usd: number;
   budget_daily_usd: number;
   budget_monthly_usd: number;
+  /** Owner's model choice per task; unset tasks use the default route (Claude Sonnet 5.5). */
+  model_routes: ModelRoutes;
+}
+
+/** Read model routes from the settings preferences JSON, dropping anything invalid. */
+export function readModelRoutes(preferences: unknown): ModelRoutes {
+  const raw = (preferences as { model_routes?: unknown } | null)?.model_routes;
+  const parsed = ModelRoutes.safeParse(raw ?? {});
+  return parsed.success ? parsed.data : {};
 }
 
 // ---------------------------------------------------------------------------

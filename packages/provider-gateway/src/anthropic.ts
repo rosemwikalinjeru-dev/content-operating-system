@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { ProviderError } from "./errors";
 import { costOf } from "./pricing";
+import { SUPPORTS_SERVER_FALLBACK } from "./routing";
 import type { GenerateRequest, GenerateResult, LLMProvider, ModelRoute, TokenUsage } from "./types";
 
 /**
@@ -9,7 +10,8 @@ import type { GenerateRequest, GenerateResult, LLMProvider, ModelRoute, TokenUsa
  *  - Structured output: `beta.messages.parse` + Zod output format (schema-constrained JSON,
  *    parsed and validated by the SDK; unsupported constraints are validated client-side).
  *  - Adaptive thinking with per-route effort.
- *  - Server-side refusal fallbacks ("default" routing by refusal category).
+ *  - Server-side refusal fallbacks ("default" routing by refusal category) on models that
+ *    support them; Haiku 5.5 has none, so the parameter is omitted there.
  *  - Top-level prompt caching: the system prompt (Brand DNA) is stable across calls.
  *  - The SDK retries 408/409/429/5xx and connection errors (maxRetries 2).
  * The API key comes from ANTHROPIC_API_KEY in the worker environment, never from callers.
@@ -26,11 +28,13 @@ export class AnthropicProvider implements LLMProvider {
     const started = Date.now();
     let response;
     try {
+      const fallback = SUPPORTS_SERVER_FALLBACK.has(route.model)
+        ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }
+        : {};
       response = await this.client.beta.messages.parse({
         model: route.model,
         max_tokens: route.maxTokens,
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
+        ...fallback,
         thinking: { type: "adaptive" },
         output_config: { effort: route.effort, format: betaZodOutputFormat(request.schema) },
         cache_control: { type: "ephemeral" },

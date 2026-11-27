@@ -33,8 +33,10 @@ Client bundles were checked: no worker code or secret names are present.
 1. **One path to the model.** Every AI call goes through `UsageController.generate`, which checks
    job, project, daily and monthly budgets *before* the call and writes a ledger row for every
    attempt (success, error, or blocked). There is no other provider entry point.
-2. **Model routing.** All tasks default to Claude Opus 5.5; depth is set with effort (analysis
-   `medium`, brief `high`). The routing table is the single place to move a task to a cheaper
+2. **Model routing.** Owner decision (2026-11-27): all tasks default to **Claude Sonnet 5.5** (half
+   the price of Opus 5.5) to protect credits; depth is set with effort (analysis `medium`, brief
+   `high`). The owner can assign Opus 5.5, Sonnet 5.5 or Haiku 5.5 per task in Settings → Budgets &
+   usage. Server-side refusal fallbacks are sent only for models that support them (not Haiku 5.5). The routing table is the single place to move a task to a cheaper
    model; that decision should be measured against the editorial eval set first.
 3. **Structured output.** `beta.messages.parse` with Zod output formats; responses are validated
    again with Zod. One automatic retry on schema-invalid output; refusals, auth and bad requests

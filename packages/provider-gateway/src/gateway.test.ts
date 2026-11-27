@@ -72,9 +72,9 @@ describe("UsageController", () => {
       jobId: "j",
       stepId: "s",
       promptTemplateId: "t",
-      model: "claude-opus-5-5",
+      model: "claude-sonnet-5-5",
       taskType: "idea_analysis",
-      actualCost: costOf("claude-opus-5-5", usage),
+      actualCost: costOf("claude-sonnet-5-5", usage),
     });
     expect(store.rows[0]!.estimatedCost).toBeGreaterThan(0);
   });
@@ -111,7 +111,7 @@ describe("UsageController", () => {
       ["success", 1, null],
     ]);
     // The failed attempt was still billed, so it is costed.
-    expect(store.rows[0]!.actualCost).toBe(costOf("claude-opus-5-5", usage));
+    expect(store.rows[0]!.actualCost).toBe(costOf("claude-sonnet-5-5", usage));
   });
 
   it("does not retry refusals or auth errors, and records them", async () => {
@@ -123,6 +123,27 @@ describe("UsageController", () => {
       expect(p.generate).toHaveBeenCalledTimes(1);
       expect(store.rows[0]).toMatchObject({ status: "error", errorCode: kind });
     }
+  });
+
+  it("uses the owner's model choice, ignores models that are not allowed", async () => {
+    const p = provider(ok);
+    const store = new MemoryStore();
+    const c = new UsageController({ providers: [p], store, now, logger: silent });
+    await c.generate(request, { userId: USER }, limits, "claude-haiku-5-5");
+    await c.generate(request, { userId: USER }, limits, "gpt-something");
+    await c.generate(request, { userId: USER }, limits);
+    expect(store.rows.map((r) => r.model)).toEqual(["claude-haiku-5-5", "claude-sonnet-5-5", "claude-sonnet-5-5"]);
+    expect(c.route("master_brief", "claude-opus-5-5").model).toBe("claude-opus-5-5");
+    expect(c.route("master_brief").effort).toBe("high");
+  });
+
+  it("estimates a cheaper model as cheaper", () => {
+    const c = new UsageController({ providers: [provider(ok)], store: new MemoryStore(), now, logger: silent });
+    const opus = c.estimate(request, c.route("idea_analysis", "claude-opus-5-5"));
+    const sonnet = c.estimate(request, c.route("idea_analysis"));
+    const haiku = c.estimate(request, c.route("idea_analysis", "claude-haiku-5-5"));
+    expect(sonnet).toBeCloseTo(opus / 2, 6);
+    expect(haiku).toBeLessThan(sonnet / 10);
   });
 
   it("returns the result even if the ledger write fails, and logs it", async () => {
@@ -160,6 +181,15 @@ describe("AnthropicProvider", () => {
     expect(args.output_config.effort).toBe("medium");
     expect(args.output_config.format).toBeDefined();
     expect(args).not.toHaveProperty("temperature");
+  });
+
+  it("omits server-side fallbacks for Haiku 5.5, which does not support them", async () => {
+    const { client, parse } = fakeClient({ model: "claude-haiku-5-5", stop_reason: "end_turn", parsed_output: { answer: "y" }, usage: apiUsage });
+    await new AnthropicProvider(client).generate(request, { ...route, model: "claude-haiku-5-5" });
+    const args = parse.mock.calls[0]![0];
+    expect(args).not.toHaveProperty("fallbacks");
+    expect(args).not.toHaveProperty("betas");
+    expect(args.thinking).toEqual({ type: "adaptive" });
   });
 
   it("costs the response at the model that actually served it (fallback)", async () => {

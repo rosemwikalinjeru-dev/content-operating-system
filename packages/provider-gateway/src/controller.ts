@@ -1,7 +1,7 @@
 import { AppError, logger as defaultLogger, type Logger } from "@contentos/shared";
 import { ProviderError } from "./errors";
 import { costOf, estimateTokens, priceFor } from "./pricing";
-import { DEFAULT_ROUTES } from "./routing";
+import { ALLOWED_MODELS, DEFAULT_ROUTES } from "./routing";
 import type { GenerateRequest, GenerateResult, LLMProvider, ModelRoute, TaskType, TokenUsage } from "./types";
 
 /** Who and what a call is for. Every usage row is traceable to these. */
@@ -99,8 +99,10 @@ export class UsageController {
     this.log = opts.logger ?? defaultLogger;
   }
 
-  route(task: TaskType): ModelRoute {
-    return this.routes[task];
+  /** The route for a task, with an optional owner model override (ignored unless allowed). */
+  route(task: TaskType, model?: string | null): ModelRoute {
+    const base = this.routes[task];
+    return model && (ALLOWED_MODELS as readonly string[]).includes(model) ? { ...base, model } : base;
   }
 
   /** Pre-call estimate: full input at list price plus the route's expected output. */
@@ -114,8 +116,17 @@ export class UsageController {
     });
   }
 
-  async generate<T>(request: GenerateRequest<T>, ctx: UsageContext, limits: BudgetLimits): Promise<GenerateResult<T>> {
-    const route = this.routes[request.task];
+  /**
+   * @param model Optional owner override for this task (from Settings). Must be an allowed model;
+   *              anything else is ignored and the default route is used.
+   */
+  async generate<T>(
+    request: GenerateRequest<T>,
+    ctx: UsageContext,
+    limits: BudgetLimits,
+    model?: string | null,
+  ): Promise<GenerateResult<T>> {
+    const route = this.route(request.task, model);
     const provider = this.providers.get(route.provider);
     if (!provider) throw new AppError("INTERNAL", `No provider registered for ${route.provider}.`);
     if (!priceFor(route.model).known) this.log.warn("pricing_unknown_model", { model: route.model });

@@ -45,6 +45,17 @@ describe("ideas", () => {
   });
 });
 
+describe("model routes", () => {
+  it("reads valid choices and drops invalid ones", async () => {
+    const { readModelRoutes, SettingsUpdate } = await import("./index");
+    expect(readModelRoutes({ model_routes: { idea_analysis: "claude-haiku-5-5" } })).toEqual({ idea_analysis: "claude-haiku-5-5" });
+    expect(readModelRoutes({ model_routes: { idea_analysis: "gpt-5" } })).toEqual({});
+    expect(readModelRoutes(null)).toEqual({});
+    expect(SettingsUpdate.safeParse({ model_routes: { master_brief: "claude-opus-5-5" } }).success).toBe(true);
+    expect(SettingsUpdate.safeParse({ model_routes: { master_brief: "other" } }).success).toBe(false);
+  });
+});
+
 describe("brand", () => {
   it("accepts the shipped defaults", () => {
     expect(BrandProfileCreate.safeParse(ROSE_NJERU_DEFAULTS).success).toBe(true);

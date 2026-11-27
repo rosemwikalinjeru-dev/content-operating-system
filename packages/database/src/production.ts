@@ -1,12 +1,12 @@
 import { AppError, fromDatabaseError } from "@contentos/shared";
-import type { ContentFormat, JobType, JobView, MasterBrief, SettingsUpdate, UserSettings } from "@contentos/schemas";
+import { readModelRoutes, type ContentFormat, type JobType, type JobView, type MasterBrief, type SettingsUpdate, type UserSettings } from "@contentos/schemas";
 import type { UserClient } from "./client";
 
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
-const SETTINGS_COLUMNS = "budget_text_project_usd, budget_media_project_usd, budget_daily_usd, budget_monthly_usd";
+const SETTINGS_COLUMNS = "budget_text_project_usd, budget_media_project_usd, budget_daily_usd, budget_monthly_usd, preferences";
 
 function toSettings(row: Record<string, unknown>): UserSettings {
   return {
@@ -14,6 +14,7 @@ function toSettings(row: Record<string, unknown>): UserSettings {
     budget_media_project_usd: Number(row.budget_media_project_usd),
     budget_daily_usd: Number(row.budget_daily_usd),
     budget_monthly_usd: Number(row.budget_monthly_usd),
+    model_routes: readModelRoutes(row.preferences),
   };
 }
 
@@ -25,7 +26,16 @@ export async function getSettings(db: UserClient): Promise<UserSettings> {
 }
 
 export async function updateSettings(db: UserClient, userId: string, input: SettingsUpdate): Promise<UserSettings> {
-  const { data, error } = await db.from("user_settings").update(input).eq("user_id", userId).select(SETTINGS_COLUMNS).maybeSingle();
+  const { model_routes, ...budgets } = input;
+  const patch: Record<string, unknown> = { ...budgets };
+  if (model_routes) {
+    // Merge into the preferences JSON rather than replacing other preferences.
+    const current = await db.from("user_settings").select("preferences").eq("user_id", userId).maybeSingle();
+    if (current.error) throw fromDatabaseError(current.error);
+    const prefs = (current.data?.preferences as Record<string, unknown> | null) ?? {};
+    patch.preferences = { ...prefs, model_routes };
+  }
+  const { data, error } = await db.from("user_settings").update(patch).eq("user_id", userId).select(SETTINGS_COLUMNS).maybeSingle();
   if (error) throw fromDatabaseError(error);
   if (!data) throw new AppError("NOT_FOUND", "Settings not found.");
   return toSettings(data);

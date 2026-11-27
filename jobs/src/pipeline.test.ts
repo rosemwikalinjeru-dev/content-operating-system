@@ -58,7 +58,7 @@ beforeEach(() => {
   svc.loadJob.mockResolvedValue({ id: "job-1", user_id: USER, job_type: "analyze_idea", status: "queued", project_id: null, input: { idea_id: IDEA }, budget_limit_usd: null });
   svc.loadIdea.mockResolvedValue({ id: IDEA, brand_id: "brand-1", title: "Missed calls", raw_input: "Nobody calls back", status: "inbox", analysis: null, analysis_input_hash: null });
   svc.loadBrand.mockResolvedValue(brand);
-  svc.loadSettings.mockResolvedValue({ budget_text_project_usd: 0.5, budget_media_project_usd: 3, budget_daily_usd: 5, budget_monthly_usd: 50 });
+  svc.loadSettings.mockResolvedValue({ budget_text_project_usd: 0.5, budget_media_project_usd: 3, budget_daily_usd: 5, budget_monthly_usd: 50, model_routes: {} });
   svc.loadVoiceExamples.mockResolvedValue([{ id: "k1", kind: "example_post", title: "t", body: "b" }]);
   svc.searchKnowledge.mockResolvedValue([]);
   svc.ensurePromptTemplate.mockResolvedValue("tmpl-1");
@@ -77,10 +77,19 @@ describe("analyze_idea pipeline", () => {
       expect.objectContaining({ task: "idea_analysis" }),
       { userId: USER, jobId: "job-1", stepId: "step-1", promptTemplateId: "tmpl-1" },
       { dailyUsd: 5, monthlyUsd: 50, jobUsd: null },
+      undefined,
     );
     expect(svc.saveIdeaAnalysis).toHaveBeenCalledWith({}, USER, IDEA, analysisOutput, expect.stringMatching(/^[0-9a-f]{64}$/));
     expect(svc.finishStep).toHaveBeenCalledWith({}, expect.anything(), "step-1", expect.objectContaining({ status: "completed", cost: 0.04 }));
     expect(svc.updateJob).toHaveBeenLastCalledWith({}, expect.anything(), expect.objectContaining({ status: "completed", progress: 100, actual_cost: 0.04 }));
+  });
+
+  it("passes the owner's model choice for the task", async () => {
+    svc.loadSettings.mockResolvedValue({ budget_text_project_usd: 0.5, budget_media_project_usd: 3, budget_daily_usd: 5, budget_monthly_usd: 50, model_routes: { idea_analysis: "claude-haiku-5-5" } });
+    const c = okAnalysis();
+    await runAnalyzeIdea(deps(c), "job-1", { finalAttempt: false });
+    expect(c.generate.mock.calls[0]![3]).toBe("claude-haiku-5-5");
+    expect(c.route).toHaveBeenCalledWith("idea_analysis", "claude-haiku-5-5");
   });
 
   it("reuses a completed step with identical inputs instead of paying again (resume)", async () => {

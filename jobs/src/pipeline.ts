@@ -142,11 +142,13 @@ export async function runAnalyzeIdea(deps: PipelineDeps, jobId: string, opts: Ru
   await svc.updateJob(deps.db, job, { progress: 40, current_step: "analyzing" });
   await runStep(deps, job, opts, { name: "analyze", position: 1, inputHash }, async (stepId) => {
     const request = buildIdeaAnalysisRequest({ brand, examples, related }, idea);
-    await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task)) });
+    const model = settings.model_routes.idea_analysis;
+    await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task, model)) });
     const result = await deps.controller.generate(
       request,
       { userId, jobId: job.id, stepId, promptTemplateId: templateId },
       { dailyUsd: settings.budget_daily_usd, monthlyUsd: settings.budget_monthly_usd, jobUsd: job.budget_limit_usd },
+      model,
     );
     await svc.saveIdeaAnalysis(deps.db, userId, idea.id, result.output, inputHash);
     return { output: { idea_id: idea.id, model: result.model, cost_usd: result.costUsd }, cost: result.costUsd };
@@ -202,7 +204,8 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
       { brand, examples, related },
       { idea, analysis, formats, guidance: input.data.guidance, recentStages },
     );
-    await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task)) });
+    const model = settings.model_routes.master_brief;
+    await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task, model)) });
     const result = await deps.controller.generate(
       request,
       { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },
@@ -212,6 +215,7 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
         projectUsd: settings.budget_text_project_usd,
         jobUsd: job.budget_limit_usd,
       },
+      model,
     );
     const brief = finaliseBrief(result.output, formats);
     const saved = await svc.insertBrief(deps.db, userId, {

@@ -2,6 +2,7 @@ import { getSettings, getUsageSummary } from "@contentos/database";
 import type { Metadata } from "next";
 import { requireSession } from "@/lib/auth";
 import { BudgetForm } from "./budget-form";
+import { ModelForm } from "./model-form";
 
 export const metadata: Metadata = { title: "Budgets & usage" };
 
@@ -52,6 +53,8 @@ export default async function UsagePage() {
       </div>
 
       <BudgetForm settings={settings} />
+
+      <ModelForm routes={settings.model_routes} />
 
       <div className="card">
         <p className="mb-3 font-semibold">This month by task</p>
