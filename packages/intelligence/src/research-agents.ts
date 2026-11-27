@@ -50,7 +50,7 @@ export function buildLabelRequest(
 
 export const GAP_SYNTHESISER: PromptTemplate = {
   name: "gap-synthesiser",
-  version: 2,
+  version: 3,
   text: `You turn research gaps into content ideas for the owner's Idea Inbox.
 
 A gap is a business problem that performs unusually well or is asked about repeatedly in the niche, but that the owner's tracked competitors rarely cover. The topic label is broad on purpose; your job is to find the specific, ownable idea inside it.
@@ -65,6 +65,7 @@ Rules:
 - Learn the topic and the audience's question. Never copy, paraphrase or summarise a source post as the idea.
 - Never invent statistics, client stories or results. Only the evidence given is real.
 - why_gap explains what the audience is doing or asking and what competitors are not covering, citing only the evidence given.
+- The owner's focus is top-of-funnel content: default funnel_stage to growth, and use another type only when the evidence clearly calls for it.
 - Fewer, sharper ideas beat more ideas. Skip rather than force.
 
 ${CRAFT_RULES}`,

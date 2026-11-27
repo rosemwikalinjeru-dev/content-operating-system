@@ -43,7 +43,7 @@ export const BrandGuidelines = z.object({
       personal: z.number().int().min(0).max(100),
     })
     .refine((m) => m.growth + m.authority + m.conversion + m.personal === 100, "Content mix must add up to 100%")
-    .default({ growth: 40, authority: 30, conversion: 20, personal: 10 }),
+    .default({ growth: 70, authority: 20, conversion: 5, personal: 5 }),
   messaging: z
     .object({
       /** Primary brand descriptor, e.g. "Business Intelligence. Strategic Transformation. Measurable Performance." */

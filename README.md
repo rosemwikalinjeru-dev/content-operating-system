@@ -117,7 +117,7 @@ only runs after you turn it on, which records your approval.
 
 ## Writing — Phase 3
 
-Apply `supabase/migrations/20261129000100_writing.sql`, then `20261129000200_brief_marks_idea.sql`, in the Supabase SQL Editor. No new secrets.
+Apply `supabase/migrations/20261129000100_writing.sql`, then `20261129000200_brief_marks_idea.sql` and `20261129000300_tofu_mix.sql`, in the Supabase SQL Editor. No new secrets.
 
 ## Vercel
 

@@ -93,10 +93,20 @@ personal posts, and merges the other two into its descriptions:
 
 | Type | Default | Covers |
 |---|---|---|
-| growth | 40% | Hot takes, industry challenges, market trends, bold observations |
-| authority | 30% | Frameworks, solving one specific problem, teardowns, trend breakdowns, real case studies |
-| conversion | 20% | Offers, demos, before/after scenarios (labelled unless real), one clear call to action |
-| personal | 10% | Mistakes, turning points, behind the scenes, life moments that taught something about the industry |
+| growth (TOFU) | 70% | Hot takes, industry challenges, everyday operational moments, bold observations, for owners who have never heard of her |
+| authority | 20% | Frameworks, solving one specific problem, teardowns, trend breakdowns, real case studies |
+| conversion | 5% | Offers, demos, before/after scenarios (labelled unless real), one clear call to action |
+| personal | 5% | Mistakes, turning points, behind the scenes, life moments that taught something about the industry |
+
+**Owner decision (2026-11-27): the focus is top-of-funnel (TOFU) content.** The default mix moved
+from 40/30/20/10 to 70/20/5/5. Migration `20261129000300_tofu_mix.sql` applies this to a brand
+still on the old default; a mix the owner has edited is left alone. Every agent defaults to growth:
+- the Idea Analyst gives at least two growth angles;
+- the Strategist chooses growth unless the idea clearly belongs elsewhere;
+- the gap synthesiser defaults to growth.
+
+Growth drafts are written for a business owner with no prior context: no jargon, no offer, no
+"DM me". They close with a low-effort action.
 
 The mix is editable in Settings (must total 100%). Each brief chooses a type; the Strategist sees
 the last 20 approved briefs' types and leans toward whichever is under target.

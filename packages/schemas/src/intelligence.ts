@@ -46,7 +46,7 @@ export type FunnelStage = z.infer<typeof FunnelStage>;
 
 export const FUNNEL_STAGE_GUIDE: Record<FunnelStage, string> = {
   growth:
-    "Gets you discovered. Hot takes, industry challenges, market trends, bold observations. Broad enough to attract, sharp enough to stand out.",
+    "Top of funnel (TOFU) — the owner's main focus. Gets you discovered by business owners who have never heard of her. Hot takes, industry challenges, everyday operational moments, bold observations. Understandable with no prior context and no jargon; no offer, no pitch; ends with a low-effort action (reply, save, notice something in your own business). Broad enough to attract, sharp enough to stand out.",
   authority:
     "Builds trust. Frameworks, how to solve one specific problem, teardowns, trend breakdowns, case studies (real ones only).",
   conversion:

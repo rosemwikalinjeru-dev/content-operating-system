@@ -132,7 +132,8 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       linen_cream: "#F1EFE8",
     },
     fonts: { display: "Cormorant Garamond", body: "DM Sans", mono: "IBM Plex Mono" },
-    content_mix: { growth: 40, authority: 30, conversion: 20, personal: 10 },
+    // Owner decision (2026-11-27): focus on top-of-funnel (TOFU) content.
+    content_mix: { growth: 70, authority: 20, conversion: 5, personal: 5 },
     content_pillars: [
       "Business performance and intelligence",
       "Process and operational problems",

@@ -20,7 +20,7 @@ describe("research idea screen", () => {
   });
 
   it("asks the synthesiser for a specific moment, a non-obvious claim and the generic version to avoid", () => {
-    expect(GAP_SYNTHESISER.version).toBe(2);
+    expect(GAP_SYNTHESISER.version).toBe(3);
     for (const field of ["specific_moment", "non_obvious_claim", "generic_version"]) expect(GAP_SYNTHESISER.text).toContain(field);
   });
 });

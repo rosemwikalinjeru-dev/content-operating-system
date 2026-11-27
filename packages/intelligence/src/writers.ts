@@ -22,6 +22,7 @@ const SHARED = `You write one piece of content from an approved master brief.
 - Any story, number, client detail or result that is not in the verified knowledge goes in [square brackets] for the owner to fill, e.g. [what the client said]. Never invent them.
 - Write in the owner's voice (see the voice examples): plain words, short lines, British English, no hype, no banned phrases, no emojis unless her examples use them, no hashtags unless asked.
 - End with the brief's desired action, phrased as one small thing the reader can do.
+- If the brief's funnel_stage is growth (top of funnel, the owner's focus): write for a business owner who has never heard of her — no jargon, no tool names unless the brief needs one, no offer, no link, no "DM me". The close is a low-effort action: a question they can answer from their own business, or something to notice this week.
 - single_point and cover_test describe what you wrote, honestly.
 
 ${CRAFT_RULES}`;
@@ -29,7 +30,7 @@ ${CRAFT_RULES}`;
 export const FORMAT_WRITERS: Record<ContentFormat, PromptTemplate> = {
   linkedin: {
     name: "writer-linkedin",
-    version: 1,
+    version: 2,
     text: `${SHARED}
 
 Format: a LinkedIn text post.
@@ -39,7 +40,7 @@ Format: a LinkedIn text post.
   },
   x_thread: {
     name: "writer-x-thread",
-    version: 1,
+    version: 2,
     text: `${SHARED}
 
 Format: an X thread.
@@ -50,7 +51,7 @@ Format: an X thread.
   },
   carousel: {
     name: "writer-carousel",
-    version: 1,
+    version: 2,
     text: `${SHARED}
 
 Format: a carousel narrative (text only; design is done later).
@@ -61,7 +62,7 @@ Format: a carousel narrative (text only; design is done later).
   },
   short_video: {
     name: "writer-short-video",
-    version: 1,
+    version: 2,
     text: `${SHARED}
 
 Format: a short vertical video script (under 60 seconds, the owner speaking to camera, with screen recordings where useful).

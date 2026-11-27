@@ -169,7 +169,7 @@ describe("generate_brief pipeline", () => {
     expect(c.generate.mock.calls[0]![2]).toEqual({ dailyUsd: 5, monthlyUsd: 50, projectUsd: 0.5, jobUsd: null });
     expect(c.generate.mock.calls[0]![1]).toMatchObject({ projectId: PROJECT, jobId: "job-2" });
     expect(c.generate.mock.calls[0]![0].messages[0].content).toContain("Focus on salons");
-    expect(c.generate.mock.calls[0]![0].messages[0].content).toContain("growth: target 40%, recent 100% (2 of 2)");
+    expect(c.generate.mock.calls[0]![0].messages[0].content).toContain("growth: target 70%, recent 100% (2 of 2)");
     const saved = svc.insertBrief.mock.calls[0]![2];
     expect(saved.brief.selected_formats).toEqual(["linkedin"]);
     expect(saved).toMatchObject({ projectId: PROJECT, model: "claude-opus-5-5", promptTemplateId: "tmpl-1", jobId: "job-2" });

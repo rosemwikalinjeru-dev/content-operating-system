@@ -83,8 +83,8 @@ describe("agents", () => {
   it("gives both writing agents the craft rules", () => {
     expect(IDEA_ANALYST.text).toContain("Hook and delivery craft");
     expect(STRATEGIST.text).toContain("Hook and delivery craft");
-    expect(IDEA_ANALYST.version).toBe(3);
-    expect(STRATEGIST.version).toBe(3);
+    expect(IDEA_ANALYST.version).toBe(4);
+    expect(STRATEGIST.version).toBe(4);
     expect(STRATEGIST.text).toContain("cover test");
     expect(STRATEGIST.text).toContain("One point per post");
   });
