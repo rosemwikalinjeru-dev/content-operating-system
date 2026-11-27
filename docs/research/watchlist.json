@@ -1,0 +1,150 @@
+{
+  "source": "Owner-supplied list, 2026-11-27",
+  "note": "Profile URLs and platforms to be confirmed before monitoring is configured.",
+  "competitors": [
+    {
+      "name": "Nate Herk",
+      "relationship": "direct_competitor",
+      "priority": 1,
+      "study_focus": "Breaking down complex workflows; use cases; making technical work accessible",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Nick Saraev",
+      "relationship": "direct_competitor",
+      "priority": null,
+      "study_focus": "Linking automation to marketing and business models; commercial value",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Liam Ottley",
+      "relationship": "direct_competitor",
+      "priority": 8,
+      "study_focus": "Business teardowns; before/after systems; implementation storytelling",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Isabella Bedoya",
+      "relationship": "direct_competitor",
+      "priority": null,
+      "study_focus": "Connecting owners everyday problems to systems solutions",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Allie K. Miller",
+      "relationship": "positioning_benchmark",
+      "priority": 2,
+      "study_focus": "Executive-level hooks; business implications of AI; strong opinions",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Ethan Mollick",
+      "relationship": "positioning_benchmark",
+      "priority": 7,
+      "study_focus": "Evidence-led observations; experiments; stating limitations",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Chris Donnelly",
+      "relationship": "positioning_benchmark",
+      "priority": null,
+      "study_focus": "Business opportunities for a broad professional audience",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Alex Hormozi",
+      "relationship": "craft_benchmark",
+      "priority": 6,
+      "study_focus": "Short opening lines, numbers, simple commercial explanations (not the aggressive style)",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Justin Welsh",
+      "relationship": "craft_benchmark",
+      "priority": 3,
+      "study_focus": "Opening lines, spacing, one idea per post, story to lesson",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Katelyn Bourgoin",
+      "relationship": "craft_benchmark",
+      "priority": 4,
+      "study_focus": "Turning customer frustrations and buying behaviour into content",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Alex Lieberman",
+      "relationship": "positioning_benchmark",
+      "priority": null,
+      "study_focus": "Packaging business observations into memorable narratives",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    },
+    {
+      "name": "Sabrina Ramonov",
+      "relationship": "craft_benchmark",
+      "priority": 5,
+      "study_focus": "Original to repurposed content system; visual explanations",
+      "platforms": [
+        {
+          "platform": "linkedin",
+          "profile_url": null
+        }
+      ]
+    }
+  ]
+}

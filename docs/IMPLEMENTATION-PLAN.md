@@ -120,6 +120,10 @@ revise one paragraph → approve → export, with every call's cost visible on t
 - **Phase 2:** ScrapeCreators skills adapted (outliers, comment mining, competitor/creator
   teardowns, transcripts, trends). First task: live-verify LinkedIn creator coverage.
   Agent-Reach optional for Reddit/YouTube/web.
+- **Phase 2 additions from the owner's watchlist (docs/research/COMPETITOR-WATCHLIST.md):**
+  competitors gain `relationship` (direct_competitor / positioning_benchmark / craft_benchmark),
+  `priority` and `study_focus`; reports use the per-post analysis framework and the hook-pattern
+  taxonomy; manual post import for LinkedIn individuals; outliers only with a sufficient baseline.
 - **Phases 3–4:** from the LangChain social-media-agent — learned rules from the owner's edits
   (proposed rules require approval before use), URL → post repurposing, verify-before-generate.
 - **Phase 6:** AI Video Factory scene/style-pack approach (anime styles), Shorts generator local
