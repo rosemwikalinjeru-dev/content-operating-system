@@ -5,14 +5,10 @@ name: Deploy background jobs
 # Worker secrets (ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) live in
 # Trigger.dev → Environment Variables, never in GitHub or the repository.
 
+# Manual only while jobs run inline on Vercel (Plan B, 2026-11-27): Trigger.dev refused
+# deployments for the organisation. Re-enable the push trigger when switching back.
 on:
   workflow_dispatch:
-  push:
-    branches: [claude/admiring-newton-1mmul7, main]
-    paths:
-      - "jobs/**"
-      - "packages/**"
-      - "pnpm-lock.yaml"
 
 permissions:
   contents: read

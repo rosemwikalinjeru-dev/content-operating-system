@@ -211,11 +211,33 @@ export async function failJobToStart(db: UserClient, jobId: string, message: str
     .eq("id", jobId);
 }
 
+/**
+ * Mark a job failed only if it is still queued or running, so a specific error already recorded
+ * by the pipeline is never overwritten by a generic one.
+ */
+export async function failJobIfActive(db: UserClient, jobId: string, error: { code: string; message: string }): Promise<boolean> {
+  const { data, error: dbError } = await db
+    .from("production_jobs")
+    .update({ status: "failed", error, completed_at: new Date().toISOString() })
+    .eq("id", jobId)
+    .in("status", ["queued", "running"])
+    .select("id");
+  if (dbError) throw fromDatabaseError(dbError);
+  return (data ?? []).length > 0;
+}
+
+/** A queued or running job with no progress for this long is considered dead (function killed). */
+export const STALE_JOB_MS = 6 * 60 * 1000;
+
+export function isStale(job: Pick<JobView, "status" | "updated_at">, now = Date.now()): boolean {
+  return (job.status === "queued" || job.status === "running") && now - Date.parse(job.updated_at) > STALE_JOB_MS;
+}
+
 export async function getJobView(db: UserClient, id: string): Promise<JobView> {
   const { data, error } = await db
     .from("production_jobs")
     .select(
-      "id, job_type, status, progress, current_step, error, estimated_cost, actual_cost, input, created_at, completed_at, job_steps(name, status, position, output)",
+      "id, job_type, status, progress, current_step, error, estimated_cost, actual_cost, input, created_at, updated_at, completed_at, job_steps(name, status, position, output)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -231,6 +253,7 @@ export async function getJobView(db: UserClient, id: string): Promise<JobView> {
     estimated_cost: number | null;
     actual_cost: number;
     created_at: string;
+    updated_at: string;
     completed_at: string | null;
     job_steps: Array<{ name: string; status: string; position: number; output: Record<string, unknown> | null }> | null;
   };
@@ -247,6 +270,7 @@ export async function getJobView(db: UserClient, id: string): Promise<JobView> {
     actual_cost_usd: Number(row.actual_cost),
     result: steps.at(-1)?.output ?? null,
     created_at: row.created_at,
+    updated_at: row.updated_at,
     completed_at: row.completed_at,
   };
 }

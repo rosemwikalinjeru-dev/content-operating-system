@@ -6,6 +6,9 @@ import { enqueueJob, idempotencyHeader, shortHash } from "@/lib/jobs";
 
 type Params = { id: string };
 
+// Inline jobs run in this function after the response (Plan B), so allow the full duration.
+export const maxDuration = 300;
+
 /**
  * Start (or return) an analysis job. Without ?force=1, the idempotency key is derived from the
  * idea text, so re-clicking Analyse on an unchanged idea returns the same job and costs nothing.

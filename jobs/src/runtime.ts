@@ -5,8 +5,9 @@ import { logger as baseLogger } from "@contentos/shared";
 import { z } from "zod";
 import type { PipelineDeps } from "./pipeline";
 
-/** Worker secrets live in the Trigger.dev environment, never in the web app or the repo. */
+/** Worker secrets are server-side environment variables; never in the browser or the repo. */
 const WorkerEnv = z.object({
+  // On Vercel (inline runner) the public URL variable is reused.
   SUPABASE_URL: z.string().trim().pipe(z.url()),
   SUPABASE_SERVICE_ROLE_KEY: z.string().trim().min(1),
   ANTHROPIC_API_KEY: z.string().trim().min(1),
@@ -46,10 +47,13 @@ let cached: PipelineDeps | undefined;
 
 export function pipelineDeps(): PipelineDeps {
   if (cached) return cached;
-  const parsed = WorkerEnv.safeParse(process.env);
+  const parsed = WorkerEnv.safeParse({
+    ...process.env,
+    SUPABASE_URL: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
+  });
   if (!parsed.success) {
     const names = [...new Set(parsed.error.issues.map((i) => String(i.path[0])))].join(", ");
-    throw new Error(`Worker environment is missing or invalid: ${names}. Set them in Trigger.dev → Environment Variables.`);
+    throw new Error(`Worker environment is missing or invalid: ${names}. Set them in the job runner's environment (Vercel or Trigger.dev).`);
   }
   const db = svc.createServiceClient(parsed.data.SUPABASE_URL, parsed.data.SUPABASE_SERVICE_ROLE_KEY);
   const logger = baseLogger.child({ component: "jobs" });

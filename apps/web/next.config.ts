@@ -12,6 +12,7 @@ const config: NextConfig = {
   transpilePackages: [
     "@contentos/database",
     "@contentos/intelligence",
+    "@contentos/jobs",
     "@contentos/provider-gateway",
     "@contentos/schemas",
     "@contentos/shared",

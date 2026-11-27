@@ -6,6 +6,9 @@ import { enqueueJob, idempotencyHeader, shortHash } from "@/lib/jobs";
 
 type Params = { id: string };
 
+// Inline jobs run in this function after the response (Plan B), so allow the full duration.
+export const maxDuration = 300;
+
 /**
  * Generate a new brief version. Each deliberate click sends a fresh Idempotency-Key, so
  * double-submits collapse into one job while intentional regenerations create a new version.

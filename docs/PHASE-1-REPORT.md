@@ -2,7 +2,17 @@
 
 Date: 2026-11-27
 Exit condition: *"An idea becomes an approved structured brief"*, with every AI call costed.
-Status: **implemented and tested locally; live demonstration pending deployment of background jobs.**
+Status: **implemented and tested locally; background jobs switched to the inline runner (Plan B); live demonstration pending Vercel secrets.**
+
+## 0. Plan B (2026-11-27)
+
+Trigger.dev built and uploaded the job bundle successfully but refused to create the deployment:
+"Deployments are not available for this organization" (same result with CLI 4.8.4 and 4.8.5). This
+is an account-level restriction. With the owner's approval, jobs now run inline on Vercel via
+`after()` — see ARCHITECTURE.md "Plan B". The pipelines did not change; only the runner did.
+Added: `jobs/src/runner.ts` (retries + backoff), stale-job recovery (`TIMED_OUT` after 6 minutes
+without progress), `failJobIfActive`, runner selection via `JOB_RUNNER`. Tests: 119 passing.
+Client bundles were checked: no worker code or secret names are present.
 
 ## 1. What was built
 
@@ -88,10 +98,10 @@ Actual costs are recorded per call on the Usage page.
 
 ## 6. Known limitations
 
-1. **Not yet demonstrated live.** Needs: migration applied, Trigger.dev secrets set, jobs deployed,
-   `TRIGGER_SECRET_KEY` on Vercel. No real model call has been made from this environment.
-2. **Trigger.dev deploy from a pnpm monorepo** is untested here; the tasks bundle cleanly with
-   esbuild, but the first `trigger deploy` may need adjustment.
+1. **Not yet demonstrated live.** Needs: migration applied, `ANTHROPIC_API_KEY` and
+   `SUPABASE_SERVICE_ROLE_KEY` in Vercel. No real model call has been made from this environment.
+2. Inline jobs must finish within the Vercel function limit (`maxDuration = 300`). If the plan's
+   limit is lower, long briefs can time out; they are then marked `TIMED_OUT` and can be retried.
 3. Day/month budgets use UTC (Nairobi is UTC+3).
 4. Learned rules from the owner's edits (LangChain social-agent pattern) are scheduled for Phases 3–4.
 

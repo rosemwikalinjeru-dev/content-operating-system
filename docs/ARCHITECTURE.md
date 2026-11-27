@@ -2,6 +2,19 @@
 
 Condensed from "ContentOS — Final Architecture & Implementation Specification".
 Amendments from reconnaissance are marked **[R]** and explained in `RECONNAISSANCE.md`.
+Amendments marked **[B]** come from Plan B (2026-11-27), approved by the owner after Trigger.dev
+refused deployments for the organisation ("Deployments are not available for this organization").
+
+### Plan B — inline job runner
+
+- Jobs are created exactly as before (idempotent rows, steps with input hashes), then run in the
+  same Vercel function after the response is sent (`after()`, `maxDuration = 300`).
+- The inline runner retries retryable failures (3 attempts, backoff); non-retryable failures stop.
+- A job with no progress for 6 minutes is marked `TIMED_OUT` when polled, so it can be retried.
+- Trade-offs accepted: the Supabase service-role key and Anthropic key live in Vercel server env
+  (never `NEXT_PUBLIC_`, verified absent from client bundles); each job must finish within the
+  function limit. Phase 6 media rendering still requires a dedicated worker.
+- Switching back: set `JOB_RUNNER=trigger`, add `TRIGGER_SECRET_KEY`, re-enable the deploy workflow.
 
 ## 1. Product
 
@@ -23,7 +36,7 @@ idea inbox.
 | Architecture | Modular monolith |
 | Web | Next.js + TypeScript on Vercel; REST under `/api/v1`, Zod-validated |
 | Data | Supabase Postgres + Auth + Storage, RLS on all user-owned tables, pgvector **[R]** |
-| Orchestration | Trigger.dev is the only orchestrator; job + step state of record in Postgres **[R]** |
+| Orchestration | Job + step state of record in Postgres **[R]**. Runner: **inline on Vercel via `after()` (Plan B, active)**; Trigger.dev supported via `JOB_RUNNER=trigger` **[B]** |
 | Media | Docker media worker (Node: Remotion, FFmpeg, Playwright) + Python sidecars (faster-whisper, Kokoro) **[R]** |
 | LLMs | Claude + OpenAI behind `LLMProvider`; separate evaluator call for review |
 | Research | ScrapeCreators primary; Agent-Reach optional, no logged-in channels **[R]** |

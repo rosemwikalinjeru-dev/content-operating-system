@@ -196,5 +196,6 @@ export interface JobView {
   actual_cost_usd: number;
   result: Record<string, unknown> | null;
   created_at: string;
+  updated_at: string;
   completed_at: string | null;
 }

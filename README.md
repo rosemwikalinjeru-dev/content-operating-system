@@ -3,7 +3,7 @@
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
 **Status:** Phase 0 complete and live. Phase 1 (Content intelligence) implemented and tested;
-awaiting deployment of background jobs. See [Phase 0 report](docs/PHASE-0-REPORT.md) and
+background jobs run inline on Vercel (Plan B). See [Phase 0 report](docs/PHASE-0-REPORT.md) and
 [Phase 1 report](docs/PHASE-1-REPORT.md).
 
 - [Architecture](docs/ARCHITECTURE.md) · [Reconnaissance](docs/RECONNAISSANCE.md) ·
@@ -83,24 +83,22 @@ pnpm lint
 The service-role key is **not** used by the web app in Phase 0. Do not add it to Vercel until a
 phase needs it (Phase 1 background jobs run in Trigger.dev, which holds its own secrets).
 
-## Background jobs (Trigger.dev) — Phase 1
+## Background jobs — Phase 1 (Plan B: inline on Vercel)
 
-Secrets and where they go. Never paste them into chat or commit them.
+Jobs run inside the web app after each request returns. Add these to Vercel → Settings →
+Environment Variables (Production). Never paste them into chat or commit them.
 
-| Secret | Where | Value |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | Trigger.dev → Environment Variables → Production | console.anthropic.com → API Keys |
-| `SUPABASE_URL` | Trigger.dev → Environment Variables → Production | same as `NEXT_PUBLIC_SUPABASE_URL` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Trigger.dev → Environment Variables → Production | Supabase → Project Settings → API Keys → secret key |
-| `TRIGGER_SECRET_KEY` | Vercel → Environment Variables | Trigger.dev → API keys → Production (`tr_prod_…`) |
-| `TRIGGER_ACCESS_TOKEN` | GitHub → Settings → Secrets and variables → Actions | Trigger.dev → Account → Personal access tokens |
-| `TRIGGER_PROJECT_REF` | GitHub → Actions secrets | Trigger.dev → Project settings (`proj_…`) |
+| Secret | Value |
+|---|---|
+| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API Keys → secret key |
 
-Then:
+Then apply `supabase/migrations/20261127000100_content_intelligence.sql` in the Supabase SQL
+Editor and redeploy Vercel.
 
-1. Apply the new migration in Supabase (SQL Editor): `supabase/migrations/20261127000100_content_intelligence.sql`.
-2. Run the **Deploy background jobs** workflow (GitHub → Actions), or push a change under `jobs/`.
-3. Redeploy Vercel so it picks up `TRIGGER_SECRET_KEY`.
+Trigger.dev remains supported: set `JOB_RUNNER=trigger` and `TRIGGER_SECRET_KEY` in Vercel, put the
+two secrets above plus `SUPABASE_URL` in Trigger.dev, and run the **Deploy background jobs** workflow
+(needs GitHub secrets `TRIGGER_ACCESS_TOKEN` and `TRIGGER_PROJECT_REF`).
 
 ## Vercel
 
