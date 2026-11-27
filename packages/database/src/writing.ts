@@ -249,24 +249,33 @@ export async function listGateOverrides(db: UserClient, versionId: string): Prom
 }
 
 /** What the free checks need at approval time: brief JSON, verified knowledge and banned phrases. */
-export async function gateSources(db: UserClient, assetId: string): Promise<{ briefText: string; knowledgeText: string; banned: string[] }> {
+export async function gateSources(
+  db: UserClient,
+  assetId: string,
+): Promise<{ briefText: string; knowledgeText: string; banned: string[]; approvedBodies: unknown[]; examplePosts: string[] }> {
   const { data: asset, error } = await db.from("content_assets").select("brief_id, content_projects(brand_id)").eq("id", assetId).maybeSingle();
   if (error) throw fromDatabaseError(error);
   if (!asset) throw new AppError("NOT_FOUND", "Content not found.");
   const a = asset as unknown as { brief_id: string | null; content_projects: { brand_id: string } | null };
   const brandId = a.content_projects?.brand_id;
-  const [brief, knowledge, brand] = await Promise.all([
+  const [brief, knowledge, brand, approved, examples] = await Promise.all([
     a.brief_id ? db.from("content_briefs").select("brief").eq("id", a.brief_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     brandId
       ? db.from("brand_knowledge").select("title, body").eq("brand_id", brandId).eq("verified", true).is("deleted_at", null).limit(500)
       : Promise.resolve({ data: [], error: null }),
     brandId ? db.from("brand_profiles").select("voice_profile").eq("id", brandId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    db.from("content_versions").select("body").eq("status", "approved").neq("asset_id", assetId).order("created_at", { ascending: false }).limit(100),
+    brandId
+      ? db.from("brand_knowledge").select("body").eq("brand_id", brandId).eq("kind", "example_post").is("deleted_at", null).limit(50)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const r of [brief, knowledge, brand]) if (r.error) throw fromDatabaseError(r.error);
+  for (const r of [brief, knowledge, brand, approved, examples]) if (r.error) throw fromDatabaseError(r.error);
   return {
     briefText: brief.data ? JSON.stringify((brief.data as { brief: unknown }).brief) : "",
     knowledgeText: ((knowledge.data ?? []) as { title: string; body: string }[]).map((k) => `${k.title}\n${k.body}`).join("\n\n"),
     banned: ((brand.data as { voice_profile?: { banned_phrases?: string[] } } | null)?.voice_profile?.banned_phrases ?? []).filter(Boolean),
+    approvedBodies: ((approved.data ?? []) as { body: unknown }[]).map((r) => r.body),
+    examplePosts: ((examples.data ?? []) as { body: string }[]).map((r) => r.body),
   };
 }
 

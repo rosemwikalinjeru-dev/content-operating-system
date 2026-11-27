@@ -24,7 +24,7 @@ import {
   type UserSettings,
 } from "@contentos/schemas";
 import { z } from "zod";
-import { loadReviewShared, reviewVersion } from "./editorial";
+import { loadAvoidList, loadReviewShared, reviewVersion } from "./editorial";
 import { complete, loadAndStart, NonRetryableJobError, promptTemplateId, runStep, stableHash, type PipelineDeps, type RunOptions } from "./pipeline";
 
 const WriteInput = z.object({
@@ -71,6 +71,8 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
   await svc.markProjectInProduction(deps.db, userId, project.id);
   const shared = await loadReviewShared(deps, userId, brand.id);
   const rules = shared.rules;
+  // Guidance only: not part of the "unchanged" hash, or every new post would force rewrites.
+  const avoid = await loadAvoidList(deps, userId, project.id, examples);
 
   await svc.updateJob(deps.db, job, { progress: 20, current_step: "writing_formats" });
   let done = 0;
@@ -104,7 +106,7 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
           return { output: { asset_id: assetId, version: existing.version, version_id: existing.id, reused: true }, cost: 0 };
         }
         const templateId = await promptTemplateId(deps.db, userId, writer, `Write a ${asset.label}`);
-        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules });
+        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules, avoid });
         const result = await deps.controller.generate(
           request,
           { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },
@@ -177,13 +179,14 @@ export async function runReviseSection(deps: PipelineDeps, jobId: string, opts: 
   const examples = await svc.loadVoiceExamples(deps.db, userId, brand.id);
   const shared = await loadReviewShared(deps, userId, brand.id);
   const rules = shared.rules;
+  const avoid = await loadAvoidList(deps, userId, project.id, examples);
 
   await svc.updateJob(deps.db, job, { progress: 30, current_step: "revising" });
   const inputHash = stableHash({ base: base.id, section, instruction, rules, template: templateHash(SECTION_REVISER) });
   const revised = await runStep(deps, job, opts, { name: "revise", position: 1, inputHash }, async (stepId) => {
     const templateId = await promptTemplateId(deps.db, userId, SECTION_REVISER, "Revise one section");
     const result = await deps.controller.generate(
-      buildRevisionRequest({ brand, examples }, { body, sectionKey: section, instruction, rules }),
+      buildRevisionRequest({ brand, examples }, { body, sectionKey: section, instruction, rules, avoid }),
       { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },
       budgets(settings, job),
       settings.model_routes.section_revision,

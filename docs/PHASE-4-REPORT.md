@@ -43,6 +43,32 @@ The test database (which mirrors Supabase) showed that Supabase's default privil
 - Typecheck, lint and `next build` are clean, with no secret names in client bundles.
 - **The live eval has not been run** (there is no API key in the build environment). See §5.
 
+## 4A. No repetition, and the hook and ending playbook (2026-11-27)
+
+Owner request: do not repeat the same phrases; use *The Inbound Blueprint* (Lawrence Kiprono, 2026)
+and Lara Acosta's and Alex Hormozi's way of framing hooks.
+
+- **Cause found.** The shared writing rules quoted lines from the owner's own posts as examples ("Each one feels small. Together, they're a second business."), so every writer was nudged to reuse them. All example lines are now neutral. A test fails if any prompt ever shares a six-word phrase with a voice sample again.
+- **Prevented before writing.**
+  - Writers, the Strategist and the reviser get a "do not repeat" list: the openings and endings of recent pieces and published posts, plus 5+ word phrases that already recur across two or more of them.
+  - The list is guidance only and is left out of the "unchanged" hash, so a new post never forces older drafts to be rewritten.
+- **Blocked at approval.**
+  - Repeating a published opening or a 6+ word phrase from approved content or the owner's posts is now a gate (`repeated_hook` / `repeated_phrase`). The reviewer is told about each repeat and suggests a fresh rewrite.
+  - The approve route checks repetition itself, so hand edits can't bypass it.
+  - An override with a reason is still possible.
+- **Hook and ending playbook** (in the shared rules, so every writer, the Strategist, the Idea Analyst and the reviewer use it):
+  - The guide's three hook types, with its hook shapes adapted rather than copied.
+  - Hormozi's hook → retain → reward, and relevance plus conflict, the unusual or recency.
+  - Lara Acosta's story → lesson → actionable step → "you".
+  - Conversational positioning: write like you speak, use the prospect's words, show your thinking, no neat conclusions.
+  - Five ending types (observation, curiosity, action, conversation, silence), varied against recent endings.
+  - Awareness stages for TOFU (unaware and problem-aware).
+- **Free warnings on every draft:** AI jargon (leverage, streamline, optimise, unlock and so on) and formula endings ("Comment below", "Agree?", "DM me").
+- **Note on sources.** The guide's content was read in full from the owner's PDF. The Hormozi and Acosta frameworks are summarised from general knowledge of their published work (*$100M Leads*; Acosta's SLAY structure), not from a source in the repository. They are used as techniques only.
+- **Versions.**
+  - Prompts: Idea Analyst v5, Strategist v5, writers v3, reviser v2, reviewer v2.
+  - Existing drafts are unchanged. Use **Write fresh drafts** to get the new versions.
+
 ## 5. Known limitations
 
 1. **The eval needs at least 10 of your posts.** With only the 4 voice samples, the report will say "not enough owner posts" and fail, even if the gap looks good.

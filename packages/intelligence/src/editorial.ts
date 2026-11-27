@@ -17,7 +17,10 @@ import {
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
 import { CRAFT_RULES, type AgentContext } from "./agents";
+import { normalise } from "./avoid";
 import { asData, composeSystem, GLOBAL_RULES, renderKnowledge, type PromptTemplate } from "./prompts";
+
+export { normalise };
 
 // ---------------------------------------------------------------------------
 // Deterministic checks
@@ -27,14 +30,6 @@ function sectionText(s: DraftSection): string {
   return [s.headline, s.text, s.on_screen, s.broll].filter(Boolean).join(" ");
 }
 
-export function normalise(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[’']/g, "'")
-    .replace(/[^a-z0-9'\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 /**
  * Numbers that need a source: percentages, money, multipliers ("3x") and any figure of 10 or
@@ -162,7 +157,7 @@ export function findRepetition(
 
 export const EDITORIAL_REVIEWER: PromptTemplate = {
   name: "editorial-reviewer",
-  version: 1,
+  version: 2,
   text: `You are the Editorial Reviewer. You did not write this draft. Judge it strictly against the owner's standards, as an editor who wants her to win, not to be flattered.
 
 Score each dimension 1–5, quoting the exact words your score is based on:
@@ -173,6 +168,7 @@ Score each dimension 1–5, quoting the exact words your score is based on:
 - specificity: named kind of business, an observable moment, a concrete consequence. 1 = abstractions ("businesses struggle with efficiency").
 - craft: the format's rules (LinkedIn white space and length; tweet length and a first tweet that stands alone; one idea per slide; spoken lines and a 3-second hook for video).
 Use the full range. A 5 is rare. Most competent drafts are 3s.
+Score hook lower for an obvious or clickbait opening; voice lower for jargon, corporate phrasing, "many people", a formula ending ("Comment below", "Agree?"), a neat over-tidy conclusion, a default "3 tips" list, or reuse of her published lines; specificity lower for anything that could apply to any industry or person.
 
 cold_reader: only if the brief's funnel_stage is growth (top of funnel). Could a business owner who has never heard of her follow it and care? Otherwise null.
 
@@ -209,7 +205,7 @@ export function renderDraft(body: Pick<DraftBody, "sections">): string {
 
 export function buildReviewRequest(
   ctx: ReviewContext,
-  input: { body: DraftBody; brief: MasterBrief | null },
+  input: { body: DraftBody; brief: MasterBrief | null; repetition?: RepetitionFinding[] },
 ): GenerateRequest<ReviewOutput> {
   const system = [composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: EDITORIAL_REVIEWER }), renderRules(ctx.rules)]
     .filter(Boolean)
@@ -226,7 +222,17 @@ export function buildReviewRequest(
           asData("draft", renderDraft(input.body)),
           "Verified knowledge (the only material that counts as real):",
           renderKnowledge(ctx.related),
-        ].join("\n\n"),
+          input.repetition?.length
+            ? asData(
+                "repeats",
+                `These lines repeat the owner's earlier posts. Each blocks approval; give a fresh rewrite for every section listed:\n${input.repetition
+                  .map((r) => `- ${r.section ?? "?"}: "${r.phrase}" (${r.kind === "hook" ? "same opening" : "phrase"} as in ${r.seen_in})`)
+                  .join("\n")}`,
+              )
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       },
     ],
     schema: ReviewOutput,
@@ -275,3 +281,4 @@ export function buildRuleProposalRequest(input: {
     schema: RuleProposals,
   };
 }
+

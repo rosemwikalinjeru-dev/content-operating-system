@@ -11,6 +11,7 @@ import {
   type KnowledgeEntry,
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
+import { renderAvoidList, type AvoidList } from "./avoid";
 import { asData, composeSystem, renderKnowledge, type PromptTemplate } from "./prompts";
 
 type Knowledge = Pick<KnowledgeEntry, "id" | "kind" | "title" | "body">;
@@ -28,19 +29,40 @@ export interface AgentContext {
 // ---------------------------------------------------------------------------
 
 /**
- * Hook and delivery craft. Drawn from the owner's craft benchmarks (docs/research): Justin Welsh
- * for single-idea delivery and short parallel lines, Alex Hormozi for plain commercial logic —
- * techniques only, never their topics, claims or aggressive tone.
+ * Hook and delivery craft. Sources (techniques only, never topics, claims, lines or tone):
+ *  - "The Inbound Blueprint" (Lawrence Kiprono, 2026), supplied by the owner: awareness stages,
+ *    hook types and templates, conversational positioning, CTA variety, AI-content traps.
+ *  - Craft benchmarks in docs/research/COMPETITOR-WATCHLIST.md: Alex Hormozi (hook → retain →
+ *    reward; plain commercial logic), Lara Acosta (story → lesson → actionable → you), Justin
+ *    Welsh (one idea, short parallel lines).
+ * Example lines here are deliberately NOT taken from the owner's posts, so writers never copy them.
  */
-export const CRAFT_RULES = `Hook and delivery craft:
-- Start from a moment someone can picture: a person, a time, an action. "A customer messages at 9pm on Friday" beats "communication gaps".
-- Make the reader the subject. Their calls, their quotes, their money. Avoid abstract nouns as the subject ("data", "AI", "systems", "efficiency").
-- Commercial logic in plain words: if X, then Y. "You pay for the click, then lose the call." No percentages unless the owner supplied them.
-- One idea per post. Short lines. Parallel structure where it fits ("Each one feels small. Together, they're a second business.").
+export const CRAFT_RULES = `Hooks (the first one to three lines decide whether anyone reads on):
+- A hook does one of three things: names a specific, recognisable problem; challenges a belief the reader holds; or offers a surprising observation. Never obvious, never clickbait the post does not pay off.
+- Hook → retain → reward: the hook earns the second line, every line earns the next, and the end pays off what the hook promised.
+- Make it relevant to the reader in the first line: their role, their day, their money. Add one of: conflict (something is wrong that they think is fine), the unusual (what they do not expect), or recency (something happening now).
+- Useful shapes, adapted rather than copied: "You [normal behaviour]. But [what it is really costing]." · "Stop [common belief]. You are not [assumed cause]. You are [actual cause]." · "The difference between [those who struggle] and [those who do not] is not [expected factor]. It is [unexpected factor]." · "[Specific role] told me [their problem]. What they meant was [deeper problem]." (only if the owner's knowledge says it happened).
+- Start from a moment someone can picture: a person, a time, an action. A role and a time of day beat an abstraction.
+
+Delivery:
+- Story → lesson → one actionable step → back to "you". Every line leads to the single point.
+- Talk to the reader ("you"), or name their specific role. Never "many people" or "most business owners".
+- Write like you speak to one owner in a natural setting: plain words, short lines, white space, one idea per paragraph. Read it out loud; if she would not say it, rewrite it.
+- Use the prospect's own words, not industry terms. Never: leverage, synergy, streamline, optimise/optimize, level up, unlock, game-changer, seamless, in today's fast-paced world.
+- Show the thinking, not only the conclusion. Do not wrap everything up neatly; a real observation can leave a thread open.
+- Commercial logic in plain words: if this, then that. No percentages or figures unless the owner supplied them.
+- Avoid the "3 tips" list as a default shape. Use a list only when the content really is a list.
 - A personal lesson only when the owner's knowledge or idea says it happened. Never invent the owner's experience.
 - Any number or detail only the owner knows goes in [square brackets] as a placeholder.
 - Reject slogans that could headline any automation agency's post. If a line works without the owner's context, it is too generic.
-- Use the two-line reframe ("That's not an X problem. It's a Y problem.") at most once across all suggestions.
+
+Endings (vary them; formula endings signal marketing):
+- Observation: end on a statement that lingers. · Curiosity: open a loop for a later post (only if true). · Action: one specific, low-effort thing to try this week. · Conversation: a specific question they can answer from their own business. · Silence: no call to action at all, sometimes.
+- Never "What do you think? Comment below!", "Agree?", "Thoughts?" or "DM me".
+
+No repetition:
+- Never reuse the owner's sentences from the voice examples, or any line in the "do not repeat" list you are given. Match her rhythm, not her words.
+- Use each stock construction at most once, and only if nothing fresher works: "That's not an X problem. It's a Y problem.", "Here's the thing", "Let that sink in", "Read that again", "Most people think… but", "Each one feels small".
 - Hook patterns available: ${HOOK_PATTERNS.join(", ")}.
 
 The owner's post rules (non-negotiable):
@@ -49,7 +71,8 @@ The owner's post rules (non-negotiable):
 - Storytelling with intention: every story leads to the single point. Never an update ("This week I…") without a lesson.
 - The cover test: with the owner's name and photo hidden, a reader should still know it is her — through her worldview, her framing, the moments she notices, her rhythm (see the voice examples).
 
-Content types (funnel stages):
+Awareness and content types:
+- Top-of-funnel posts meet owners who are unaware (they cannot name the problem yet) or problem-aware (they can name it but do not know a good fix). Reveal or reframe; never pitch.
 ${FUNNEL_STAGES.map((f) => `- ${f}: ${FUNNEL_STAGE_GUIDE[f]}`).join("\n")}`;
 
 // ---------------------------------------------------------------------------
@@ -58,7 +81,7 @@ ${FUNNEL_STAGES.map((f) => `- ${f}: ${FUNNEL_STAGE_GUIDE[f]}`).join("\n")}`;
 
 export const IDEA_ANALYST: PromptTemplate = {
   name: "idea-analyst",
-  version: 4,
+  version: 5,
   text: `You are the Idea Analyst. Analyse the owner's raw idea before any content is written.
 
 1. Restate the idea plainly and identify the single core argument.
@@ -98,7 +121,7 @@ export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: strin
 
 export const STRATEGIST: PromptTemplate = {
   name: "content-strategist",
-  version: 4,
+  version: 5,
   text: `You are the Content Strategist. Turn the idea into a master brief that every platform writer will follow.
 
 - Choose the funnel_stage this post serves. The owner's focus is top-of-funnel (growth) content: choose growth unless the idea clearly belongs elsewhere, and use the target and recent mix to decide when another type is due.
@@ -125,6 +148,8 @@ export function buildBriefRequest(
     guidance?: string;
     /** Content types of recently approved briefs, newest first (used to balance the mix). */
     recentStages?: FunnelStage[];
+    /** Openings, endings and phrases already used, which the hooks must not repeat. */
+    avoid?: AvoidList | null;
   },
 ): GenerateRequest<MasterBriefOutput> {
   const parts = [
@@ -135,6 +160,8 @@ export function buildBriefRequest(
   parts.push("Related knowledge from the owner's knowledge base:", renderKnowledge(ctx.related));
   parts.push(`Requested formats: ${input.formats.join(", ")}`);
   parts.push(describeMix(ctx.brand.brand_guidelines.content_mix, input.recentStages ?? []));
+  const avoid = renderAvoidList(input.avoid);
+  if (avoid) parts.push(avoid);
   // Owner guidance is an instruction from the owner, not external data.
   if (input.guidance) parts.push(`Owner's guidance for this brief: ${input.guidance}`);
 

@@ -206,3 +206,30 @@ export async function insertRuleProposals(
   if (error) throw fromDatabaseError(error);
   return (data ?? []).length;
 }
+
+/**
+ * Recent written content outside one project (newest version per asset), for the
+ * "do not repeat" list. Drafts count too: repeating an unpublished draft is still repetition.
+ */
+export async function loadRecentBodies(db: ServiceClient, userId: string, excludeProjectId: string | null, limit = 30): Promise<unknown[]> {
+  let own: string[] = [];
+  if (excludeProjectId) {
+    const { data, error } = await db.from("content_assets").select("id").eq("user_id", userId).eq("project_id", excludeProjectId);
+    if (error) throw fromDatabaseError(error);
+    own = (data as { id: string }[]).map((r) => r.id);
+  }
+  const { data, error } = await db
+    .from("content_versions")
+    .select("asset_id, version, body")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw fromDatabaseError(error);
+  const latest = new Map<string, unknown>();
+  for (const r of data as Array<{ asset_id: string; body: unknown }>) {
+    if (own.includes(r.asset_id) || latest.has(r.asset_id)) continue;
+    latest.set(r.asset_id, r.body);
+    if (latest.size >= limit) break;
+  }
+  return [...latest.values()];
+}

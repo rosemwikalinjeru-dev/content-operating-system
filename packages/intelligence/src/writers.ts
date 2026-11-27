@@ -11,6 +11,7 @@ import {
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
 import { CRAFT_RULES, type AgentContext } from "./agents";
+import { renderAvoidList, type AvoidList } from "./avoid";
 import { asData, composeSystem, renderKnowledge, type PromptTemplate } from "./prompts";
 
 /** The owner's approved learned rules, appended to the system prompt when present. */
@@ -21,12 +22,12 @@ function withRules(system: string, rules?: string[]): string {
 const SHARED = `You write one piece of content from an approved master brief.
 
 - Make exactly the brief's single_point. Keep the owner's position and argument; do not add a second point.
-- Open with the strongest of the brief's hooks, or a sharper one in the same spirit that starts from a moment the reader can picture.
+- Open with the strongest of the brief's hooks, or a sharper one in the same spirit that starts from a moment the reader can picture. Never open or close the way a piece in the "do not repeat" list does.
 - Tell it with intention: every line moves toward the single point. Never an update ("This week I…") without the lesson.
 - Use claims exactly as the brief's evidence list classifies them. needs_evidence claims become [placeholders] or are left out; never state them as fact.
 - Any story, number, client detail or result that is not in the verified knowledge goes in [square brackets] for the owner to fill, e.g. [what the client said]. Never invent them.
 - Write in the owner's voice (see the voice examples): plain words, short lines, British English, no hype, no banned phrases, no emojis unless her examples use them, no hashtags unless asked.
-- End with the brief's desired action, phrased as one small thing the reader can do.
+- End with the brief's desired action, using one of the ending types (observation, curiosity, action, conversation or silence). Pick a different type from the endings in the "do not repeat" list.
 - If the brief's funnel_stage is growth (top of funnel, the owner's focus): write for a business owner who has never heard of her — no jargon, no tool names unless the brief needs one, no offer, no link, no "DM me". The close is a low-effort action: a question they can answer from their own business, or something to notice this week.
 - single_point and cover_test describe what you wrote, honestly.
 
@@ -35,7 +36,7 @@ ${CRAFT_RULES}`;
 export const FORMAT_WRITERS: Record<ContentFormat, PromptTemplate> = {
   linkedin: {
     name: "writer-linkedin",
-    version: 2,
+    version: 3,
     text: `${SHARED}
 
 Format: a LinkedIn text post.
@@ -45,7 +46,7 @@ Format: a LinkedIn text post.
   },
   x_thread: {
     name: "writer-x-thread",
-    version: 2,
+    version: 3,
     text: `${SHARED}
 
 Format: an X thread.
@@ -56,7 +57,7 @@ Format: an X thread.
   },
   carousel: {
     name: "writer-carousel",
-    version: 2,
+    version: 3,
     text: `${SHARED}
 
 Format: a carousel narrative (text only; design is done later).
@@ -67,7 +68,7 @@ Format: a carousel narrative (text only; design is done later).
   },
   short_video: {
     name: "writer-short-video",
-    version: 2,
+    version: 3,
     text: `${SHARED}
 
 Format: a short vertical video script (under 60 seconds, the owner speaking to camera, with screen recordings where useful).
@@ -80,7 +81,7 @@ Format: a short vertical video script (under 60 seconds, the owner speaking to c
 
 export function buildWriterRequest(
   ctx: AgentContext,
-  input: { format: ContentFormat; brief: MasterBrief; guidance?: string; rules?: string[] },
+  input: { format: ContentFormat; brief: MasterBrief; guidance?: string; rules?: string[]; avoid?: AvoidList | null },
 ): GenerateRequest<DraftOutput> {
   const parts = [
     `Write the ${input.format.replace("_", " ")} for this approved brief.`,
@@ -88,6 +89,8 @@ export function buildWriterRequest(
     "Verified knowledge you may use as real (cite nothing else as real):",
     renderKnowledge(ctx.related),
   ];
+  const avoid = renderAvoidList(input.avoid);
+  if (avoid) parts.push(avoid);
   if (input.guidance) parts.push(`Owner's guidance for this draft: ${input.guidance}`);
   return {
     task: "format_writing",
@@ -99,7 +102,7 @@ export function buildWriterRequest(
 
 export const SECTION_REVISER: PromptTemplate = {
   name: "section-reviser",
-  version: 1,
+  version: 2,
   text: `You revise exactly one section of a draft, following the owner's instruction.
 
 - Change only the target section. The other sections are context; they stay as they are.
@@ -113,7 +116,7 @@ ${CRAFT_RULES}`,
 
 export function buildRevisionRequest(
   ctx: Pick<AgentContext, "brand" | "examples">,
-  input: { body: DraftBody; sectionKey: string; instruction: string; rules?: string[] },
+  input: { body: DraftBody; sectionKey: string; instruction: string; rules?: string[]; avoid?: AvoidList | null },
 ): GenerateRequest<SectionRevisionOutput> {
   const draft = input.body.sections
     .map((s) => `[${s.key}] (${s.kind})${s.headline ? ` headline: ${s.headline} |` : ""} ${s.text}${s.on_screen ? ` | on screen: ${s.on_screen}` : ""}${s.broll ? ` | show: ${s.broll}` : ""}`)
@@ -127,6 +130,7 @@ export function buildRevisionRequest(
         content: [
           `Format: ${input.body.format}. Single point: ${input.body.single_point}`,
           asData("draft", draft),
+          renderAvoidList(input.avoid),
           `Target section: ${input.sectionKey}`,
           // The instruction is the owner's own words, not external data.
           `Owner's instruction: ${input.instruction}`,

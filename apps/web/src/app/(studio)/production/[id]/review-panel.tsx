@@ -9,6 +9,8 @@ const GATE_LABEL: Record<string, string> = {
   invented_number: "Number without a source",
   invented_story: "Invented story or result",
   unsupported_claim: "Unsupported claim",
+  repeated_hook: "Repeats an earlier opening",
+  repeated_phrase: "Repeats an earlier phrase",
 };
 
 export function ReviewPanel({

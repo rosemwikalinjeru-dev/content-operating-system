@@ -7,6 +7,10 @@
  */
 import * as svc from "@contentos/database/service";
 import {
+  buildAvoidList,
+  pieceFromBody,
+  pieceFromPost,
+  type AvoidList,
   buildReviewRequest,
   buildRuleProposalRequest,
   deterministicGates,
@@ -50,6 +54,17 @@ export async function loadReviewShared(deps: PipelineDeps, userId: string, brand
   return { brand, settings, examples, rules };
 }
 
+/** What new writing must not repeat: recent pieces outside this project plus the owner's posts. */
+export async function loadAvoidList(
+  deps: PipelineDeps,
+  userId: string,
+  projectId: string | null,
+  examples: Array<{ body: string }>,
+): Promise<AvoidList> {
+  const bodies = (await svc.loadRecentBodies(deps.db, userId, projectId)).filter(isDraftBody);
+  return buildAvoidList([...bodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]);
+}
+
 /** Review one version as its own resumable step. Returns the review id and score. */
 export async function reviewVersion(
   deps: PipelineDeps,
@@ -86,11 +101,19 @@ export async function reviewVersion(
       ...examples.map((e) => ({ text: e.body, hook: e.body.split("\n").find((l) => l.trim()) ?? null, seenIn: "voice example" })),
     ];
     const repetition = findRepetition(body, corpus);
+    // The owner does not repeat herself: reused openings and phrases block approval.
+    const repeatGates: GateFailure[] = repetition.map((r) => ({
+      code: r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
+      section: r.section,
+      quote: r.phrase,
+      message: `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}. Write it fresh.`,
+      source: "check",
+    }));
 
     // 2. Independent model review.
     const templateId = await promptTemplateId(deps.db, userId, EDITORIAL_REVIEWER, "Review a draft");
     const result = await deps.controller.generate(
-      buildReviewRequest({ brand, examples, related, rules }, { body, brief: briefData }),
+      buildReviewRequest({ brand, examples, related, rules }, { body, brief: briefData, repetition }),
       { userId, projectId: input.projectId, jobId: job.id, stepId, promptTemplateId: templateId },
       budgets(settings, job),
       settings.model_routes.editorial_review,
@@ -104,7 +127,7 @@ export async function reviewVersion(
       message: g.message,
       source: "reviewer",
     }));
-    const gateFailures = [...checks, ...modelGates];
+    const gateFailures = [...checks, ...repeatGates, ...modelGates];
     const score = weightedScore(out.dimensions);
     const reviewId = await svc.insertReview(deps.db, userId, {
       assetId: asset.id,

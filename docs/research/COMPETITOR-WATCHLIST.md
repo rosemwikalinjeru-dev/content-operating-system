@@ -35,6 +35,12 @@ Priorities are the owner's research priorities, not a verified engagement rankin
 | 13 | Lara Acosta | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
 | 14 | Megan Lieu | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
 
+Hook framing adopted into the writing rules (2026-11-27, owner request): Lara Acosta's
+story → lesson → actionable → you; Alex Hormozi's hook → retain → reward. Techniques only: never
+their lines, topics or tone. The owner also supplied *The Inbound Blueprint* (L. Kiprono, 2026),
+summarised in `packages/intelligence/src/agents.ts` (CRAFT_RULES); the PDF itself is not stored
+in the repository.
+
 Profile URLs live in `watchlist.json`. Nick Saraev and Isabella Bedoya were removed by the owner (2026-11-27).
 **Missing:** which other platforms each creator is active on.
 

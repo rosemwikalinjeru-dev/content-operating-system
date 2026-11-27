@@ -13,7 +13,7 @@ const req = () => new NextRequest(`http://localhost/api/v1/versions/${ID}/approv
 
 beforeEach(() => {
   vi.clearAllMocks();
-  repo.gateSources.mockResolvedValue({ briefText: "", knowledgeText: "", banned: ["game-changer"] });
+  repo.gateSources.mockResolvedValue({ briefText: "", knowledgeText: "", banned: ["game-changer"], approvedBodies: [], examplePosts: [] });
   repo.listGateOverrides.mockResolvedValue([]);
 });
 
@@ -43,5 +43,17 @@ describe("PATCH /api/v1/versions/:id/approve", () => {
     repo.listGateOverrides.mockResolvedValue(["banned_phrase", "invented_number"]);
     repo.approveContentVersion.mockResolvedValue({ id: ID, status: "approved" });
     expect((await PATCH(req(), ctx)).status).toBe(200);
+  });
+
+  it("blocks reuse of a published opening or phrase until rewritten or overridden", async () => {
+    repo.gateSources.mockResolvedValue({
+      briefText: "", knowledgeText: "", banned: [], approvedBodies: [],
+      examplePosts: ["You could be paying to attract customers while quietly losing the ones you already have.\n\nEnd."],
+    });
+    const body = { placeholders: [], sections: [{ key: "s1", kind: "hook", text: "You could be paying to attract customers while quietly losing the ones you already have.", headline: null, on_screen: null, broll: null }] };
+    repo.getVersionById.mockResolvedValue({ id: ID, asset_id: "a", body });
+    const res = await PATCH(req(), ctx);
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.message).toMatch(/Same opening/);
   });
 });

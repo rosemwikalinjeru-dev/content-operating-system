@@ -38,7 +38,7 @@ describe("format writers", () => {
 describe("TOFU focus", () => {
   it("every writer carries the top-of-funnel rules", () => {
     for (const f of CONTENT_FORMATS) {
-      expect(FORMAT_WRITERS[f].version).toBe(2);
+      expect(FORMAT_WRITERS[f].version).toBe(3);
       expect(FORMAT_WRITERS[f].text).toContain("top of funnel");
     }
   });

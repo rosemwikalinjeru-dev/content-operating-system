@@ -91,10 +91,26 @@ export function findPlaceholders(sections: DraftSection[]): string[] {
 
 const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
 
-/** Platform limits, reported as warnings (the owner decides; nothing is silently cut). */
+/** Words no one says out loud; they mark a post as AI-written (The Inbound Blueprint, ch. 9). */
+export const AI_JARGON = ["leverage", "synergy", "streamline", "optimise", "optimize", "level up", "unlock", "game-changer", "seamless", "fast-paced", "delve"] as const;
+/** Formula endings that signal marketing rather than conversation (ch. 5). */
+export const FORMULA_ENDINGS = ["comment below", "what do you think", "thoughts?", "agree?", "dm me"] as const;
+
+/** Platform limits and AI-content traps, reported as warnings (the owner decides; nothing is silently cut). */
 export function checkDraft(format: ContentFormat, sections: DraftSection[]): DraftCheck[] {
   const out: DraftCheck[] = [];
   const warn = (message: string, section: string | null = null) => out.push({ level: "warning", section, message });
+  for (const s of sections) {
+    const t = ` ${[s.headline, s.text, s.on_screen].filter(Boolean).join(" ").toLowerCase()} `;
+    const hits = AI_JARGON.filter((j) => new RegExp(`[^a-z]${j.replace("-", "[- ]?")}(s|d|ing|ed)?[^a-z]`).test(t));
+    if (hits.length) warn(`Jargon no one says out loud: ${hits.join(", ")}. Use the reader's words.`, s.key);
+  }
+  const last = sections[sections.length - 1];
+  if (last) {
+    const t = last.text.toLowerCase();
+    const formula = FORMULA_ENDINGS.find((f) => t.includes(f));
+    if (formula) warn(`Formula ending ("${formula}"). End on an observation, a specific question, one action, or nothing.`, last.key);
+  }
   if (format === "linkedin") {
     const total = sections.map((s) => s.text).join("\n\n").length;
     if (total > 1300) warn(`${total} characters; aim for 1,300 or fewer.`);

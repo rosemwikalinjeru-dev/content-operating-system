@@ -3,6 +3,7 @@ import { ROSE_NJERU_DEFAULTS, toDraftBody } from "@contentos/schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const svc = vi.hoisted(() => ({
+  loadRecentBodies: vi.fn(async () => []),
   loadJob: vi.fn(),
   updateJob: vi.fn(),
   beginStep: vi.fn(),

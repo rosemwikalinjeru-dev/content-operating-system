@@ -12,8 +12,11 @@ import { createHash } from "node:crypto";
 import * as svc from "@contentos/database/service";
 import type { ServiceClient } from "@contentos/database/service";
 import {
+  buildAvoidList,
   buildBriefRequest,
   buildIdeaAnalysisRequest,
+  pieceFromBody,
+  pieceFromPost,
   finaliseBrief,
   IDEA_ANALYST,
   STRATEGIST,
@@ -21,7 +24,7 @@ import {
   type PromptTemplate,
 } from "@contentos/intelligence";
 import { ProviderError, type UsageController } from "@contentos/provider-gateway";
-import { ContentFormat, FunnelStage, IdeaAnalysis } from "@contentos/schemas";
+import { ContentFormat, FunnelStage, IdeaAnalysis, type DraftSection } from "@contentos/schemas";
 import { AppError, isAppError, type Logger } from "@contentos/shared";
 import { z } from "zod";
 
@@ -186,6 +189,11 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
   const recentStages = (await svc.recentFunnelStages(deps.db, userId)).filter(
     (s): s is FunnelStage => FunnelStage.safeParse(s).success,
   );
+  // Hooks must not repeat earlier posts (guidance only, so not part of the input hash).
+  const recentBodies = (await svc.loadRecentBodies(deps.db, userId, project.id)).filter(
+    (b): b is { sections: DraftSection[] } => Boolean(b && typeof b === "object" && Array.isArray((b as { sections?: unknown }).sections)),
+  );
+  const avoid = buildAvoidList([...recentBodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]);
 
   const inputHash = stableHash({
     idea: [idea.title, idea.raw_input],
@@ -203,7 +211,7 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
   await runStep(deps, job, opts, { name: "brief", position: 1, inputHash }, async (stepId) => {
     const request = buildBriefRequest(
       { brand, examples, related },
-      { idea, analysis, formats, guidance: input.data.guidance, recentStages },
+      { idea, analysis, formats, guidance: input.data.guidance, recentStages, avoid },
     );
     const model = settings.model_routes.master_brief;
     await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task, model)) });

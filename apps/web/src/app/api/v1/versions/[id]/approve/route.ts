@@ -1,5 +1,5 @@
 import { approveContentVersion, gateSources, getVersionById, listGateOverrides } from "@contentos/database";
-import { deterministicGates } from "@contentos/intelligence";
+import { deterministicGates, findRepetition, pieceFromBody, pieceFromPost } from "@contentos/intelligence";
 import { Uuid } from "@contentos/schemas";
 import { AppError } from "@contentos/shared";
 import { api, json, parseParam } from "@/lib/api/handler";
@@ -20,9 +20,20 @@ export const PATCH = api<Params>(async ({ params }) => {
     throw new AppError("CONFLICT", `Fill these before approving: ${v.body.placeholders.join(", ")}`, { placeholders: v.body.placeholders });
   }
   const [sources, overridden] = await Promise.all([gateSources(db, v.asset_id), listGateOverrides(db, id)]);
-  const open = deterministicGates({ body: v.body, bannedPhrases: sources.banned, sourceText: `${sources.briefText}\n${sources.knowledgeText}` }).filter(
-    (g) => !overridden.includes(g.code),
-  );
+  const corpus = [
+    ...sources.approvedBodies
+      .filter((b): b is { sections: typeof v.body.sections } => Boolean(b && typeof b === "object" && Array.isArray((b as { sections?: unknown }).sections)))
+      .map((b) => ({ ...pieceFromBody(b), seenIn: "approved content" })),
+    ...sources.examplePosts.map((p) => ({ ...pieceFromPost(p), seenIn: "your published posts" })),
+  ].map((c) => ({ text: c.text, hook: c.opener, seenIn: c.seenIn }));
+  const repeats = findRepetition(v.body, corpus).map((r) => ({
+    code: r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
+    message: `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}.`,
+  }));
+  const open = [
+    ...deterministicGates({ body: v.body, bannedPhrases: sources.banned, sourceText: `${sources.briefText}\n${sources.knowledgeText}` }),
+    ...repeats,
+  ].filter((g) => !overridden.includes(g.code));
   if (open.length) {
     throw new AppError("CONFLICT", `Fix or override first: ${open.map((g) => g.message).join(" ")}`, { gates: open.map((g) => g.code) });
   }
