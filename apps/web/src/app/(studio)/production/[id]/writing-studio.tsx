@@ -1,6 +1,6 @@
 "use client";
 
-import { toMarkdown, type ContentAssetView, type ContentVersionView, type DraftSection } from "@contentos/schemas";
+import { CONTENT_FORMATS, FORMAT_ASSET, toMarkdown, type ContentAssetView, type ContentFormat, type ContentVersionView, type DraftSection } from "@contentos/schemas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { JobProgress } from "@/components/job-progress";
@@ -51,7 +51,21 @@ export function WritingStudio({ projectId, hasApprovedBrief, assets, activeJob }
     }
   }
 
+  async function addFormat(format: ContentFormat) {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await apiFetch<{ job_id: string }>(`/api/v1/projects/${projectId}/write`, { method: "POST", json: { formats: [format] } });
+      setJob({ id: r.job_id, label: `Writing the ${FORMAT_ASSET[format].label}` });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const current = assets.find((a) => a.id === tab) ?? assets[0];
+  const missing = CONTENT_FORMATS.filter((f) => !assets.some((a) => a.format === f));
 
   return (
     <section className="space-y-4" aria-labelledby="writing-heading">
@@ -79,6 +93,16 @@ export function WritingStudio({ projectId, hasApprovedBrief, assets, activeJob }
           </div>
         )}
       </div>
+      {hasApprovedBrief && assets.length > 0 && missing.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted">Add a format:</span>
+          {missing.map((f) => (
+            <button key={f} className="btn-ghost" onClick={() => addFormat(f)} disabled={busy}>
+              + {FORMAT_ASSET[f].label}
+            </button>
+          ))}
+        </div>
+      )}
       {error && (
         <p role="alert" className="text-sm text-red-600">
           {error}

@@ -346,3 +346,12 @@ export async function getUsageSummary(db: UserClient, now = new Date()): Promise
     recent: rows.slice(0, 25),
   };
 }
+
+/** Add formats to a project's list (kept in order, no duplicates), so later writes include them. */
+export async function addProjectFormats(db: UserClient, project: ProjectView, formats: ContentFormat[]): Promise<void> {
+  const current = project.settings?.formats ?? [];
+  const next = [...current, ...formats.filter((f) => !current.includes(f))];
+  if (next.length === current.length) return;
+  const { error } = await db.from("content_projects").update({ settings: { ...project.settings, formats: next } }).eq("id", project.id);
+  if (error) throw fromDatabaseError(error);
+}

@@ -1,4 +1,4 @@
-import { approvedBriefId, getProject } from "@contentos/database";
+import { addProjectFormats, approvedBriefId, getProject } from "@contentos/database";
 import { ContentFormat, Uuid, WriteRequest } from "@contentos/schemas";
 import { AppError } from "@contentos/shared";
 import { api, json, parseJson, parseParam } from "@/lib/api/handler";
@@ -22,6 +22,8 @@ export const POST = api<Params>(async ({ req, params }) => {
   const project = await getProject(db, id);
   const brief = await approvedBriefId(db, id);
   if (!brief) throw new AppError("CONFLICT", "Approve a brief before writing.");
+  // Formats asked for explicitly join the project, so "Write fresh drafts" includes them later.
+  if (input.formats) await addProjectFormats(db, project, input.formats);
   const projectFormats = ContentFormat.array().safeParse(project.settings?.formats);
   const formats = input.formats ?? (projectFormats.success && projectFormats.data.length ? projectFormats.data : ["linkedin", "x_thread", "carousel", "short_video"]);
   const key =
