@@ -1,4 +1,5 @@
-import { activeWritingJob, getProject, listProjectAssets } from "@contentos/database";
+import { activeWritingJob, getProject, listProjectAssets, missingMigrations } from "@contentos/database";
+import { isAppError, logger } from "@contentos/shared";
 import { MasterBrief, Uuid } from "@contentos/schemas";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -37,7 +38,23 @@ export default async function ProjectPage({
   const selected = project.briefs.find((b) => b.version === requested) ?? project.briefs[0];
   const parsed = selected ? MasterBrief.safeParse(selected.brief) : null;
   const hasApprovedBrief = project.briefs.some((b) => b.approval_status === "approved");
-  const [assets, activeJob] = await Promise.all([listProjectAssets(db, project.id), activeWritingJob(db, project.id)]);
+  // The writing section must never take the whole page down: show what is wrong instead.
+  let writing: { assets: Awaited<ReturnType<typeof listProjectAssets>>; activeJob: Awaited<ReturnType<typeof activeWritingJob>> } | null = null;
+  let writingError: { message: string; missing: string[] } | null = null;
+  try {
+    const [assets, activeJob] = await Promise.all([listProjectAssets(db, project.id), activeWritingJob(db, project.id)]);
+    writing = { assets, activeJob };
+  } catch (err) {
+    const ref = crypto.randomUUID().slice(0, 8);
+    logger.error("project_writing_load_failed", { ref, projectId: project.id, error: err instanceof Error ? err.message : String(err), details: isAppError(err) ? err.details : undefined });
+    const missing = await missingMigrations(db).catch(() => []);
+    const dbCode = isAppError(err) ? (err.details as { dbCode?: string } | undefined)?.dbCode : undefined;
+    writingError = {
+      message: `${isAppError(err) ? err.message : "The writing section could not load."}${dbCode ? ` [${dbCode}]` : ""} (ref ${ref})`,
+      missing,
+    };
+  }
+  const assets = writing?.assets ?? [];
 
   return (
     <section className="space-y-6">
@@ -89,8 +106,31 @@ export default async function ProjectPage({
         )
       )}
 
-      {(hasApprovedBrief || assets.length > 0) && (
-        <WritingStudio projectId={project.id} hasApprovedBrief={hasApprovedBrief} assets={assets} activeJob={activeJob} />
+      {writingError ? (
+        <div role="alert" className="card space-y-2 border-l-4 border-l-red-600">
+          <p className="font-semibold">The writing section could not load.</p>
+          {writingError.missing.length > 0 ? (
+            <>
+              <p className="text-sm">
+                The database is missing an update. In Supabase → SQL Editor, run these files from <code>supabase/migrations</code>, in
+                this order, then reload:
+              </p>
+              <ol className="list-decimal pl-5 text-sm">
+                {writingError.missing.map((f) => (
+                  <li key={f}>
+                    <code>{f}</code>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <p className="text-sm text-muted">{writingError.message}</p>
+          )}
+        </div>
+      ) : (
+        (hasApprovedBrief || assets.length > 0) && (
+          <WritingStudio projectId={project.id} hasApprovedBrief={hasApprovedBrief} assets={assets} activeJob={writing?.activeJob ?? null} />
+        )
       )}
     </section>
   );

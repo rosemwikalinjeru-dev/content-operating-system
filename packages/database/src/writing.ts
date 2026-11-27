@@ -338,3 +338,21 @@ export async function getLatestVersion(db: UserClient, assetId: string): Promise
   if (!data) throw new AppError("NOT_FOUND", "Version not found.");
   return data as ContentVersionView;
 }
+
+/**
+ * Which schema migrations this page needs are missing from the live database. Each probe reads
+ * one column the migration adds; a "missing column/table" error means it has not been applied.
+ */
+export async function missingMigrations(db: UserClient): Promise<string[]> {
+  const probes: Array<[string, () => PromiseLike<{ error: { code?: string } | null }>]> = [
+    ["20261129000100_writing.sql", () => db.from("content_versions").select("revised_section").limit(1)],
+    ["20261130000100_editorial.sql", () => db.from("quality_reviews").select("version_id").limit(1)],
+    ["20261130000100_editorial.sql", () => db.from("gate_overrides").select("gate").limit(1)],
+  ];
+  const missing = new Set<string>();
+  for (const [file, probe] of probes) {
+    const { error } = await probe();
+    if (error && ["42703", "42P01", "PGRST204", "PGRST205", "PGRST200"].includes(error.code ?? "")) missing.add(file);
+  }
+  return [...missing];
+}
