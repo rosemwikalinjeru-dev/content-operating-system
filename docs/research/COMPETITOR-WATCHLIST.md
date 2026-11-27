@@ -91,3 +91,45 @@ individual's posts. Every account here is an individual. Phase 2 therefore suppo
 2. Their other platforms (YouTube, X, Instagram, TikTok) where full feeds exist.
 3. **Manual import:** the owner pastes posts (and optionally metrics) into ContentOS. Stored as
    research sources with `provider = manual`; no scraping, no account risk.
+
+## Niche outliers and competitor gaps → ideas (owner requirement, 2026-11-27)
+
+Beyond tracking named accounts, research must find what is **working in the niche that the
+tracked competitors are not covering**, and turn the best of it into ideas in the Idea Inbox.
+
+### Pipeline
+
+1. **Niche sweep.** Search by niche keywords and hashtags (not only named accounts) on platforms
+   with search coverage (TikTok, Instagram, YouTube, Reddit, X; LinkedIn where available).
+2. **Niche outliers.** For each post, compare engagement with its author's own baseline. A post
+   from a small account that beats its baseline counts as much as a big account's hit.
+3. **Topic clustering.** Group outliers into topics (e.g. "no-shows", "after-hours enquiries",
+   "review requests"), keeping the source posts as evidence.
+4. **Competitor coverage.** For each topic, measure how often the tracked competitors and
+   benchmarks have covered it recently.
+5. **Gap score** = outlier strength × (1 − competitor coverage) × fit with Brand DNA
+   (pillars, audience pains, v1.0 positioning). Topics outside the brand are dropped, however
+   popular.
+6. **Unanswered questions.** From comment mining, questions the audience keeps asking that
+   competitors' posts do not answer are scored as gaps too.
+7. **Idea creation.** Top gaps become ideas in the Inbox (`source_type = research`), each linked
+   to its research report and carrying:
+   - the evidence (source URLs, observed metrics, collection date; estimates labelled);
+   - why it is a gap (which competitors cover it, how often);
+   - a suggested content type and angle;
+   - **"observed"** facts kept separate from **"interpretation"**.
+   Ideas from research go through the Idea Analyst like any other, so generic gaps get flagged.
+
+### Guardrails
+
+- Learn the topic and the audience question, never copy the post. Originality checks (Phase 4)
+  compare drafts against the source posts.
+- Competitor and creator content is untrusted data: passed to agents as data, never instructions.
+- Weekly by default to control API cost; each sweep runs under the AI and research budgets.
+
+### Starter niche keywords (draft from Brand DNA; owner to edit)
+
+missed calls · no-shows · lead follow-up · speed to lead · booking automation · appointment
+reminders · review requests · quote follow-up · CRM for small business · customer retention ·
+salon bookings · clinic no-shows · gym membership retention · home services leads ·
+business process automation · AI for small business

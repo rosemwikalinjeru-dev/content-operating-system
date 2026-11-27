@@ -124,6 +124,11 @@ revise one paragraph → approve → export, with every call's cost visible on t
   competitors gain `relationship` (direct_competitor / positioning_benchmark / craft_benchmark),
   `priority` and `study_focus`; reports use the per-post analysis framework and the hook-pattern
   taxonomy; manual post import for LinkedIn individuals; outliers only with a sufficient baseline.
+- **Phase 2 niche gap engine (owner requirement):** keyword/hashtag niche sweeps, niche-wide
+  outliers vs each author's baseline, topic clustering, competitor coverage per topic, gap score
+  (outlier strength × low coverage × brand fit), unanswered audience questions, and automatic
+  research ideas in the Inbox with evidence and observed/interpretation separation. Exit check:
+  one weekly sweep produces at least three evidence-backed gap ideas that pass the Idea Analyst.
 - **Phases 3–4:** from the LangChain social-media-agent — learned rules from the owner's edits
   (proposed rules require approval before use), URL → post repurposing, verify-before-generate.
 - **Phase 6:** AI Video Factory scene/style-pack approach (anime styles), Shorts generator local
