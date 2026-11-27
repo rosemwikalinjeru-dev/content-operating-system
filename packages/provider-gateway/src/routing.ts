@@ -56,6 +56,22 @@ export const DEFAULT_ROUTES: Record<TaskType, ModelRoute> = {
     maxTokens: 4_000,
     expectedOutputTokens: 600,
   },
+  // Independent review of every draft: its own prompt, evidence-quoted scores.
+  editorial_review: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "medium",
+    maxTokens: 10_000,
+    expectedOutputTokens: 2_000,
+  },
+  // Proposes voice rules from the owner's edits: short output, cheapest model.
+  rule_proposal: {
+    provider: "anthropic",
+    model: "claude-haiku-5-5",
+    effort: "low",
+    maxTokens: 3_000,
+    expectedOutputTokens: 500,
+  },
   master_brief: {
     provider: "anthropic",
     model: "claude-sonnet-5-5",

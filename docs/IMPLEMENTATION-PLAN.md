@@ -1,6 +1,6 @@
 # ContentOS — Implementation Plan
 
-Status: **approved — full system (2026-11-26)**. Phase 0 complete (2026-11-26). Phase 1 complete (2026-11-27). Phase 2 accepted with refinement ongoing (2026-11-27). Phase 3 built (see PHASE-3-REPORT.md). Phase 4 brief proposed. Based on `docs/ARCHITECTURE.md` and `docs/RECONNAISSANCE.md`.
+Status: **approved — full system (2026-11-26)**. Phase 0 complete (2026-11-26). Phase 1 complete (2026-11-27). Phase 2 accepted with refinement ongoing (2026-11-27). Phase 3 built (see PHASE-3-REPORT.md). Phase 4 built, awaiting owner exit check (see PHASE-4-REPORT.md). Based on `docs/ARCHITECTURE.md` and `docs/RECONNAISSANCE.md`.
 
 ## 0. Scope
 

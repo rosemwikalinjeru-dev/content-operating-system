@@ -265,6 +265,8 @@ export const ModelRoutes = z.object({
   idea_screening: ModelChoice.optional(),
   format_writing: ModelChoice.optional(),
   section_revision: ModelChoice.optional(),
+  editorial_review: ModelChoice.optional(),
+  rule_proposal: ModelChoice.optional(),
 });
 export type ModelRoutes = z.infer<typeof ModelRoutes>;
 
@@ -300,7 +302,7 @@ export function readModelRoutes(preferences: unknown): ModelRoutes {
 // Jobs
 // ---------------------------------------------------------------------------
 
-export const JOB_TYPES = ["analyze_idea", "generate_brief", "research_sweep", "write_content", "revise_section"] as const;
+export const JOB_TYPES = ["analyze_idea", "generate_brief", "research_sweep", "write_content", "revise_section", "review_version", "propose_rules"] as const;
 export type JobType = (typeof JOB_TYPES)[number];
 
 export type JobStatus = "queued" | "running" | "awaiting_approval" | "completed" | "failed" | "cancelled";

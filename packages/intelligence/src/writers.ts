@@ -13,6 +13,11 @@ import type { GenerateRequest } from "@contentos/provider-gateway";
 import { CRAFT_RULES, type AgentContext } from "./agents";
 import { asData, composeSystem, renderKnowledge, type PromptTemplate } from "./prompts";
 
+/** The owner's approved learned rules, appended to the system prompt when present. */
+function withRules(system: string, rules?: string[]): string {
+  return rules?.length ? `${system}\n\n---\n\n# The owner's approved learned rules (follow them)\n${rules.map((r) => `- ${r}`).join("\n")}` : system;
+}
+
 const SHARED = `You write one piece of content from an approved master brief.
 
 - Make exactly the brief's single_point. Keep the owner's position and argument; do not add a second point.
@@ -75,7 +80,7 @@ Format: a short vertical video script (under 60 seconds, the owner speaking to c
 
 export function buildWriterRequest(
   ctx: AgentContext,
-  input: { format: ContentFormat; brief: MasterBrief; guidance?: string },
+  input: { format: ContentFormat; brief: MasterBrief; guidance?: string; rules?: string[] },
 ): GenerateRequest<DraftOutput> {
   const parts = [
     `Write the ${input.format.replace("_", " ")} for this approved brief.`,
@@ -86,7 +91,7 @@ export function buildWriterRequest(
   if (input.guidance) parts.push(`Owner's guidance for this draft: ${input.guidance}`);
   return {
     task: "format_writing",
-    system: composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: FORMAT_WRITERS[input.format] }),
+    system: withRules(composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: FORMAT_WRITERS[input.format] }), input.rules),
     messages: [{ role: "user", content: parts.join("\n\n") }],
     schema: DraftOutput,
   };
@@ -108,14 +113,14 @@ ${CRAFT_RULES}`,
 
 export function buildRevisionRequest(
   ctx: Pick<AgentContext, "brand" | "examples">,
-  input: { body: DraftBody; sectionKey: string; instruction: string },
+  input: { body: DraftBody; sectionKey: string; instruction: string; rules?: string[] },
 ): GenerateRequest<SectionRevisionOutput> {
   const draft = input.body.sections
     .map((s) => `[${s.key}] (${s.kind})${s.headline ? ` headline: ${s.headline} |` : ""} ${s.text}${s.on_screen ? ` | on screen: ${s.on_screen}` : ""}${s.broll ? ` | show: ${s.broll}` : ""}`)
     .join("\n");
   return {
     task: "section_revision",
-    system: composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: SECTION_REVISER }),
+    system: withRules(composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: SECTION_REVISER }), input.rules),
     messages: [
       {
         role: "user",

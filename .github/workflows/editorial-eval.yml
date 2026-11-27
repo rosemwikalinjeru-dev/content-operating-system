@@ -1,0 +1,46 @@
+name: Editorial eval
+
+# Manual only: scores the owner's posts and generic AI posts with the editorial reviewer and
+# uploads the report. Needs the repository secret ANTHROPIC_API_KEY. Costs roughly $0.30–0.80.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Reviewer model"
+        required: false
+        default: "claude-sonnet-5-5"
+        type: choice
+        options: ["claude-sonnet-5-5", "claude-opus-5-5"]
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run editorial eval
+        run: pnpm eval:editorial
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_MODEL: ${{ inputs.model }}
+      - name: Show result
+        if: always()
+        run: |
+          for f in docs/evals/*.json; do
+            [ -f "$f" ] && node -e 'const r=require(process.argv[1]); console.log(`## Editorial eval: ${r.passed ? "PASS" : "FAIL"}\n\nOwner ${r.owner.mean} (n=${r.owner.n}) vs generic ${r.generic.mean} (n=${r.generic.n}) — gap ${r.gap}, pairwise ${r.pairwise}\n\n${r.notes.join("\n")}`)' "$f" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: editorial-eval-report
+          path: docs/evals/
+          if-no-files-found: warn

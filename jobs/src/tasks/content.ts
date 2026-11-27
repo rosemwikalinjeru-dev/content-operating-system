@@ -1,6 +1,7 @@
 import { AbortTaskRunError, task } from "@trigger.dev/sdk";
 import { NonRetryableJobError, runAnalyzeIdea, runGenerateBrief } from "../pipeline";
 import { runResearchSweep } from "../research";
+import { runProposeRules, runReviewVersion } from "../editorial";
 import { runReviseSection, runWriteContent } from "../writing";
 import { pipelineDeps, researchDeps } from "../runtime";
 
@@ -66,5 +67,23 @@ export const reviseSectionTask = task({
   retry,
   run: async (payload: JobPayload, { ctx }) => {
     await guard(() => runReviseSection(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
+  },
+});
+
+export const reviewVersionTask = task({
+  id: "review-version",
+  maxDuration: 300,
+  retry,
+  run: async (payload: JobPayload, { ctx }) => {
+    await guard(() => runReviewVersion(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
+  },
+});
+
+export const proposeRulesTask = task({
+  id: "propose-rules",
+  maxDuration: 300,
+  retry,
+  run: async (payload: JobPayload, { ctx }) => {
+    await guard(() => runProposeRules(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
   },
 });

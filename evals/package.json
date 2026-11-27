@@ -1,0 +1,14 @@
+{
+  "name": "@contentos/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@contentos/intelligence": "workspace:*",
+    "@contentos/provider-gateway": "workspace:*",
+    "@contentos/schemas": "workspace:*"
+  }
+}

@@ -21,6 +21,12 @@ const svc = vi.hoisted(() => ({
   markProjectInProduction: vi.fn(),
   loadAsset: vi.fn(),
   loadVersion: vi.fn(),
+  loadApprovedRules: vi.fn(),
+  loadVersionById: vi.fn(),
+  loadVerifiedKnowledgeText: vi.fn(),
+  loadApprovedBodies: vi.fn(),
+  insertReview: vi.fn(),
+  insertSuggestions: vi.fn(),
 }));
 vi.mock("@contentos/database/service", () => svc);
 
@@ -56,7 +62,14 @@ function controller(fail?: Error) {
       const output =
         req.task === "section_revision"
           ? { text: "A plumber misses three calls before 8am.", headline: null, on_screen: null, broll: null, note: "Sharper moment." }
-          : draft;
+          : req.task === "editorial_review"
+            ? {
+                dimensions: ["hook", "single_point", "story", "voice", "specificity", "craft"].map((dimension) => ({ dimension, score: 4, evidence: "q", reason: "r" })),
+                cold_reader: null,
+                gates: [],
+                suggestions: [{ section: "s1", dimension: "hook", issue: "Sharper", text: "New hook", headline: null, on_screen: null, broll: null }, { section: "s9", dimension: "hook", issue: "Bad key", text: "x", headline: null, on_screen: null, broll: null }],
+              }
+            : draft;
       return { output, provider: "anthropic", model: "claude-sonnet-5-5", usage, costUsd: 0.02, durationMs: 1 };
     }),
     estimate: vi.fn(() => 0.02),
@@ -86,15 +99,28 @@ beforeEach(() => {
   svc.versionByInputHash.mockResolvedValue(null);
   svc.addVersion.mockResolvedValue({ id: "v-1", version: 1 });
   svc.sumSpend.mockResolvedValue(0.04);
+  svc.loadApprovedRules.mockResolvedValue(["Say clients, not customers."]);
+  svc.loadVerifiedKnowledgeText.mockResolvedValue("");
+  svc.loadApprovedBodies.mockResolvedValue([]);
+  svc.insertReview.mockResolvedValue("review-1");
+  svc.loadVersionById.mockImplementation(async (_db: unknown, _u: string, id: string) => ({
+    id, asset_id: ASSET, version: 1, body: toDraftBody("linkedin", draft as never), created_by: "ai",
+  }));
+  svc.loadAsset.mockResolvedValue({ id: ASSET, project_id: PROJECT, brief_id: BRIEF, platform: "linkedin", format: "post" });
 });
 
 describe("write_content pipeline", () => {
   it("writes each format in its own step from the approved brief and stores keyed sections", async () => {
     const c = controller();
     await runWriteContent(deps(c), "job-1", { finalAttempt: false });
-    expect(c.generate).toHaveBeenCalledTimes(2);
-    expect(c.generate.mock.calls.every((call) => call[0].task === "format_writing")).toBe(true);
-    expect(svc.beginStep.mock.calls.map((call) => call[2].name)).toEqual(["write_linkedin", "write_x_thread"]);
+    // Two writers, then an independent review of each new draft.
+    expect(c.generate.mock.calls.map((call) => call[0].task).sort()).toEqual(["editorial_review", "editorial_review", "format_writing", "format_writing"]);
+    expect(svc.beginStep.mock.calls.map((call) => call[2].name).sort()).toEqual(["review_linkedin", "review_x_thread", "write_linkedin", "write_x_thread"]);
+    // Approved learned rules reach the writer.
+    expect(c.generate.mock.calls.find((call) => call[0].task === "format_writing")![0].system).toContain("Say clients, not customers.");
+    // Suggestions for sections that do not exist are dropped.
+    expect(svc.insertSuggestions.mock.calls[0]![2]).toHaveLength(1);
+    expect(svc.insertReview.mock.calls[0]![2]).toMatchObject({ totalScore: 75, gateFailures: [] });
     const body = svc.addVersion.mock.calls[0]![1].body;
     expect(body.sections.map((s: { key: string }) => s.key)).toEqual(["s1", "s2"]);
     expect(body.placeholders).toEqual(["[missed calls]"]);
@@ -137,7 +163,7 @@ describe("revise_section pipeline", () => {
   it("rewrites only the target section and records its parent", async () => {
     const c = controller();
     await runReviseSection(deps(c), "job-2", { finalAttempt: false });
-    expect(c.generate.mock.calls[0]![0].task).toBe("section_revision");
+    expect(c.generate.mock.calls.map((call) => call[0].task)).toEqual(["section_revision", "editorial_review"]);
     expect(c.generate.mock.calls[0]![0].messages[0].content).toContain("Owner's instruction: Make the moment sharper");
     const saved = svc.addVersion.mock.calls[0]![1];
     expect(saved).toMatchObject({ parentVersion: 1, revisedSection: "s1", changeNote: "s1: Sharper moment." });

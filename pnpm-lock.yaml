@@ -103,6 +103,18 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  evals:
+    dependencies:
+      '@contentos/intelligence':
+        specifier: workspace:*
+        version: link:../packages/intelligence
+      '@contentos/provider-gateway':
+        specifier: workspace:*
+        version: link:../packages/provider-gateway
+      '@contentos/schemas':
+        specifier: workspace:*
+        version: link:../packages/schemas
+
   jobs:
     dependencies:
       '@contentos/database':

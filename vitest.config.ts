@@ -13,7 +13,15 @@ export default defineConfig({
         },
         test: {
           name: "unit",
-          include: ["packages/**/*.test.ts", "apps/web/src/**/*.test.ts", "jobs/src/**/*.test.ts"],
+          include: ["packages/**/*.test.ts", "apps/web/src/**/*.test.ts", "jobs/src/**/*.test.ts", "evals/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        // Live model evals: run explicitly with `pnpm eval:editorial` (skipped without an API key).
+        test: {
+          name: "eval",
+          include: ["evals/**/*.eval.ts"],
           environment: "node",
         },
       },

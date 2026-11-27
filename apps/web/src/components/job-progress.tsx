@@ -20,6 +20,8 @@ const STEP_LABELS: Record<string, string> = {
   creating_ideas: "Turning gaps into ideas",
   writing_formats: "Writing each format in your voice",
   revising: "Revising the section",
+  reviewing: "Reviewing the draft",
+  learning_rules: "Learning from your edits",
   done: "Done",
 };
 

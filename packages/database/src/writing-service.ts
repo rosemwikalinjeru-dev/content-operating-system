@@ -100,6 +100,7 @@ export async function loadVersion(db: ServiceClient, userId: string, assetId: st
 export interface AssetRecord {
   id: string;
   project_id: string;
+  brief_id: string | null;
   platform: string;
   format: string;
 }
@@ -107,7 +108,7 @@ export interface AssetRecord {
 export async function loadAsset(db: ServiceClient, userId: string, assetId: string): Promise<AssetRecord> {
   const { data, error } = await db
     .from("content_assets")
-    .select("id, project_id, platform, format")
+    .select("id, project_id, brief_id, platform, format")
     .eq("id", assetId)
     .eq("user_id", userId)
     .is("deleted_at", null)

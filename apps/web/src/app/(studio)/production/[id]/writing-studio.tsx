@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { JobProgress } from "@/components/job-progress";
 import { apiFetch } from "@/lib/api-client";
+import { ReviewPanel } from "./review-panel";
 
 const KIND_LABEL: Record<DraftSection["kind"], string> = {
   hook: "Hook",
@@ -102,7 +103,7 @@ export function WritingStudio({ projectId, hasApprovedBrief, assets, activeJob }
           <AssetPanel
             key={current.id}
             asset={current}
-            onJob={(id) => setJob({ id, label: "Revising section" })}
+            onJob={(id, label) => setJob({ id, label: label ?? "Revising section" })}
             onChange={() => router.refresh()}
           />
         </>
@@ -111,7 +112,7 @@ export function WritingStudio({ projectId, hasApprovedBrief, assets, activeJob }
   );
 }
 
-function AssetPanel({ asset, onJob, onChange }: { asset: ContentAssetView; onJob: (id: string) => void; onChange: () => void }) {
+function AssetPanel({ asset, onJob, onChange }: { asset: ContentAssetView; onJob: (id: string, label?: string) => void; onChange: () => void }) {
   const [selected, setSelected] = useState(asset.versions[0]?.version ?? 1);
   const [editing, setEditing] = useState(false);
   const [msg, setMsg] = useState<{ error: boolean; text: string } | null>(null);
@@ -203,12 +204,15 @@ function AssetPanel({ asset, onJob, onChange }: { asset: ContentAssetView; onJob
         </div>
       )}
 
+      <ReviewPanel version={v} onJob={(id, label) => onJob(id, label)} onChange={onChange} />
+
       {editing ? (
         <ManualEditor
           assetId={asset.id}
           version={v}
           onSaved={() => {
             setEditing(false);
+            setMsg({ error: false, text: "Saved as a new version. ContentOS will propose voice rules from your edit in Settings → Voice rules." });
             onChange();
           }}
         />

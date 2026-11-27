@@ -3,6 +3,7 @@
  * sections, so revision and editing work the same way everywhere. Pure (safe in the browser).
  */
 import { z } from "zod";
+import type { ReviewView } from "./editorial";
 import { ContentFormat } from "./intelligence";
 
 export const SECTION_KINDS = ["hook", "paragraph", "closing", "tweet", "slide", "beat", "cta"] as const;
@@ -219,6 +220,8 @@ export interface ContentVersionView {
   parent_version: number | null;
   body: DraftBody;
   created_at: string;
+  /** Latest editorial review of this version (Phase 4), if any. */
+  review?: ReviewView | null;
 }
 
 export interface ContentAssetView {

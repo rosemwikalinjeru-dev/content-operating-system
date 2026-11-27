@@ -1,6 +1,6 @@
 # Phase 4 — Editorial Intelligence: Brief
 
-Status: **proposed (2026-11-27), awaiting owner approval.**
+Status: **approved (2026-11-27); built — see PHASE-4-REPORT.md.**
 Exit condition: *every draft gets an independent review: a score, hard gates for invented facts,
 and targeted suggestions. The owner can accept or reject each suggestion. The owner's own edits
 turn into proposed voice rules, which she approves before they are used. An eval set shows the

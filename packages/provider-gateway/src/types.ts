@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 /** Every AI task the system performs. Routing, budgets and the usage ledger key on this. */
-export type TaskType = "idea_analysis" | "master_brief" | "research_labeling" | "gap_synthesis" | "idea_screening" | "format_writing" | "section_revision";
+export type TaskType = "idea_analysis" | "master_brief" | "research_labeling" | "gap_synthesis" | "idea_screening" | "format_writing" | "section_revision" | "editorial_review" | "rule_proposal";
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 

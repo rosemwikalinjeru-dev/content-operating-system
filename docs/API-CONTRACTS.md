@@ -103,7 +103,7 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening?, format_writing?, section_revision? }`, each one of
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening?, format_writing?, section_revision?, editorial_review?, rule_proposal? }`, each one of
 `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` (defaults: Sonnet, except research labelling: Haiku).
 
 ### `GET /api/v1/usage`
@@ -153,6 +153,38 @@ Every draft body has the same shape: `{ format, sections[{ key: "s1".., kind, te
   - Approves atomically: the previously approved version becomes `superseded`.
   - Returns `409` while `[placeholders]` remain unfilled.
 - `GET /api/v1/assets/:id/export?version=n` returns a Markdown download, ready to paste.
+
+## Phase 4 endpoints (editorial)
+
+Each version in `GET /api/v1/projects/:id/assets` carries `review`. It is the latest review, or `null`, and has these fields:
+
+- `total_score` (out of 100)
+- `dimensions[]`: `dimension`, `score` (1–5), `evidence` (a quote) and `reason`
+- `cold_reader`: TOFU drafts only
+- `gate_failures[]`: `code`, `message`, `section` and `source` (`check` or `reviewer`)
+- `repetition[]`
+- `suggestions[]`: `id`, `section_key`, `issue`, `rewrite` and `status`
+- `overrides[]`
+
+Endpoints:
+
+- `POST /api/v1/versions/:id/review` reviews the version on request and returns a `review_version` job. New AI drafts, revisions and accepted suggestions are reviewed automatically.
+- `PATCH /api/v1/suggestions/:id` takes `{ action: "accept" | "reject" }`.
+  - Accept applies the rewrite to the latest version as a new version, with no model call, then queues a review. It returns `409` if that section has changed since the review.
+  - Reject is recorded. Once two rejections are waiting, rule learning starts.
+- `POST /api/v1/versions/:id/overrides` takes `{ gate, reason (≥5 chars) }`.
+  - It records why the owner is approving despite a failed gate.
+  - It is insert-only, and returns `409` if that gate is already overridden.
+- `PATCH /api/v1/versions/:id/approve` now also returns `409` for:
+  - a banned phrase
+  - a number found in neither the brief nor verified knowledge
+  - failed gates on the latest review
+
+  In each case it is `409` unless the gate has an override.
+- `GET /api/v1/rules`, `POST /api/v1/rules` and `PATCH /api/v1/rules/:id`.
+  - `POST` takes `{ rule }`. A rule the owner writes is approved immediately.
+  - `PATCH` takes `{ status: approved | rejected | disabled }`.
+  - Rules proposed from hand edits wait as `proposed` until the owner approves them.
 
 ## Types
 

@@ -2,7 +2,7 @@
 
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
-**Status:** Phases 0 and 1 complete and live. Phase 2 (Research) accepted ([report](docs/PHASE-2-REPORT.md)); Phase 3 (Multi-format writing) built, awaiting the exit check ([report](docs/PHASE-3-REPORT.md));
+**Status:** Phases 0 and 1 complete and live. Phase 2 (Research) accepted ([report](docs/PHASE-2-REPORT.md)); Phase 3 (Multi-format writing) built ([report](docs/PHASE-3-REPORT.md)); Phase 4 (Editorial intelligence) built, awaiting the exit check ([report](docs/PHASE-4-REPORT.md));
 background jobs run inline on Vercel (Plan B). See [Phase 0 report](docs/PHASE-0-REPORT.md) and
 [Phase 1 report](docs/PHASE-1-REPORT.md).
 
@@ -118,6 +118,14 @@ only runs after you turn it on, which records your approval.
 ## Writing — Phase 3
 
 Apply `supabase/migrations/20261129000100_writing.sql`, then `20261129000200_brief_marks_idea.sql` and `20261129000300_tofu_mix.sql`, in the Supabase SQL Editor. No new secrets.
+
+## Editorial — Phase 4
+
+Apply `supabase/migrations/20261130000100_editorial.sql` in the Supabase SQL Editor.
+To run the editorial eval, add the repository secret `ANTHROPIC_API_KEY` (GitHub → Settings →
+Secrets and variables → Actions), then run **Actions → Editorial eval → Run workflow**. Add your
+strongest posts as `.md` files in `evals/editorial/owner-posts/` first; the report is attached to
+the run.
 
 ## Vercel
 

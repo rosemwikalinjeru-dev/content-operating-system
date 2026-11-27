@@ -24,6 +24,7 @@ import {
   type UserSettings,
 } from "@contentos/schemas";
 import { z } from "zod";
+import { loadReviewShared, reviewVersion } from "./editorial";
 import { complete, loadAndStart, NonRetryableJobError, promptTemplateId, runStep, stableHash, type PipelineDeps, type RunOptions } from "./pipeline";
 
 const WriteInput = z.object({
@@ -68,6 +69,8 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
     `${brief.data.single_point ?? ""} ${brief.data.core_argument} ${brief.data.problem}`,
   );
   await svc.markProjectInProduction(deps.db, userId, project.id);
+  const shared = await loadReviewShared(deps, userId, brand.id);
+  const rules = shared.rules;
 
   await svc.updateJob(deps.db, job, { progress: 20, current_step: "writing_formats" });
   let done = 0;
@@ -84,9 +87,10 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
         brand: brand.updated_at,
         examples: examples.map((e) => e.id),
         related: related.map((k) => k.id),
+        rules,
         force: input.data.force ? job.id : null,
       });
-      return runStep(deps, job, opts, { name: `write_${format}`, position: i + 1, inputHash }, async (stepId) => {
+      const written = await runStep(deps, job, opts, { name: `write_${format}`, position: i + 1, inputHash }, async (stepId) => {
         const assetId = await svc.ensureAsset(deps.db, userId, {
           projectId: project.id,
           briefId: briefRow.id,
@@ -97,10 +101,10 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
         // Do not regenerate unchanged assets.
         const existing = await svc.versionByInputHash(deps.db, userId, assetId, inputHash);
         if (existing) {
-          return { output: { asset_id: assetId, version: existing.version, reused: true }, cost: 0 };
+          return { output: { asset_id: assetId, version: existing.version, version_id: existing.id, reused: true }, cost: 0 };
         }
         const templateId = await promptTemplateId(deps.db, userId, writer, `Write a ${asset.label}`);
-        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data });
+        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules });
         const result = await deps.controller.generate(
           request,
           { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },
@@ -120,8 +124,19 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
           inputHash,
         });
         await svc.updateJob(deps.db, job, { progress: 20 + Math.round((++done / formats.length) * 75) });
-        return { output: { asset_id: assetId, version: saved.version, reused: false }, cost: result.costUsd };
+        return { output: { asset_id: assetId, version: saved.version, version_id: saved.id, reused: false }, cost: result.costUsd };
       });
+      // Every new draft gets an independent review; reused drafts already have one.
+      if (!written.reused) {
+        await reviewVersion(deps, job, opts, {
+          versionId: written.version_id,
+          position: formats.length + i + 1,
+          name: `review_${format}`,
+          shared,
+          projectId: project.id,
+        });
+      }
+      return written;
     }),
   );
   const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
@@ -160,13 +175,15 @@ export async function runReviseSection(deps: PipelineDeps, jobId: string, opts: 
   const brand = await svc.loadBrand(deps.db, userId, project.brand_id);
   const settings = await svc.loadSettings(deps.db, userId);
   const examples = await svc.loadVoiceExamples(deps.db, userId, brand.id);
+  const shared = await loadReviewShared(deps, userId, brand.id);
+  const rules = shared.rules;
 
   await svc.updateJob(deps.db, job, { progress: 30, current_step: "revising" });
-  const inputHash = stableHash({ base: base.id, section, instruction, template: templateHash(SECTION_REVISER) });
-  await runStep(deps, job, opts, { name: "revise", position: 1, inputHash }, async (stepId) => {
+  const inputHash = stableHash({ base: base.id, section, instruction, rules, template: templateHash(SECTION_REVISER) });
+  const revised = await runStep(deps, job, opts, { name: "revise", position: 1, inputHash }, async (stepId) => {
     const templateId = await promptTemplateId(deps.db, userId, SECTION_REVISER, "Revise one section");
     const result = await deps.controller.generate(
-      buildRevisionRequest({ brand, examples }, { body, sectionKey: section, instruction }),
+      buildRevisionRequest({ brand, examples }, { body, sectionKey: section, instruction, rules }),
       { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },
       budgets(settings, job),
       settings.model_routes.section_revision,
@@ -196,7 +213,9 @@ export async function runReviseSection(deps: PipelineDeps, jobId: string, opts: 
       parentVersion: version,
       revisedSection: section,
     });
-    return { output: { asset_id, version: saved.version }, cost: result.costUsd };
+    return { output: { asset_id, version: saved.version, version_id: saved.id }, cost: result.costUsd };
   });
+  await svc.updateJob(deps.db, job, { progress: 70, current_step: "reviewing" });
+  await reviewVersion(deps, job, opts, { versionId: revised.version_id, position: 2, name: "review", shared, projectId: project.id });
   await complete(deps, job);
 }

@@ -1,12 +1,12 @@
 import "server-only";
 import { createJob, failJobIfActive, failJobToStart, setJobOrchestratorRun, type UserClient } from "@contentos/database";
-import type { analyzeIdeaTask, generateBriefTask, researchSweepTask, reviseSectionTask, writeContentTask } from "@contentos/jobs";
+import type { analyzeIdeaTask, generateBriefTask, researchSweepTask, reviseSectionTask, writeContentTask, reviewVersionTask, proposeRulesTask } from "@contentos/jobs";
 import type { JobType } from "@contentos/schemas";
 import { AppError, isAppError, logger } from "@contentos/shared";
 import { after } from "next/server";
 import { createHash } from "node:crypto";
 
-const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief", research_sweep: "research-sweep", write_content: "write-content", revise_section: "revise-section" } as const satisfies Record<JobType, string>;
+const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief", research_sweep: "research-sweep", write_content: "write-content", revise_section: "revise-section", review_version: "review-version", propose_rules: "propose-rules" } as const satisfies Record<JobType, string>;
 
 /**
  * Where background jobs run.
@@ -124,7 +124,11 @@ async function startOnTrigger(db: UserClient, jobType: JobType, jobId: string): 
             ? await tasks.trigger<typeof researchSweepTask>(TASK_IDS.research_sweep, { jobId }, opts)
             : jobType === "write_content"
               ? await tasks.trigger<typeof writeContentTask>(TASK_IDS.write_content, { jobId }, opts)
-              : await tasks.trigger<typeof reviseSectionTask>(TASK_IDS.revise_section, { jobId }, opts);
+              : jobType === "revise_section"
+                ? await tasks.trigger<typeof reviseSectionTask>(TASK_IDS.revise_section, { jobId }, opts)
+                : jobType === "review_version"
+                  ? await tasks.trigger<typeof reviewVersionTask>(TASK_IDS.review_version, { jobId }, opts)
+                  : await tasks.trigger<typeof proposeRulesTask>(TASK_IDS.propose_rules, { jobId }, opts);
     await setJobOrchestratorRun(db, jobId, handle.id);
   } catch (err) {
     logger.error("job_trigger_failed", { jobId, error: err instanceof Error ? err.message : String(err) });
