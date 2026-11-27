@@ -127,9 +127,45 @@ tracked competitors are not covering**, and turn the best of it into ideas in th
 - Competitor and creator content is untrusted data: passed to agents as data, never instructions.
 - Weekly by default to control API cost; each sweep runs under the AI and research budgets.
 
-### Starter niche keywords (draft from Brand DNA; owner to edit)
+### Niche research keywords (revised 2026-11-27, supersedes the starter list)
 
-missed calls · no-shows · lead follow-up · speed to lead · booking automation · appointment
-reminders · review requests · quote follow-up · CRM for small business · customer retention ·
-salon bookings · clinic no-shows · gym membership retention · home services leads ·
-business process automation · AI for small business
+Shift: from *automation services businesses buy* to *business problems owners struggle to
+understand and solve* (aligned with Brand Guidelines v1.0). Full config: `research-keywords.json`.
+
+Each cluster has two layers:
+
+- **Concept** — how Rose frames the problem in content and positioning.
+- **Audience language** — the words owners actually post and search. Social search matches
+  literal text, so sweeps use these; consultant phrasing returns little.
+
+Priority directions (weight highest in gap scoring): founder dependency, operational visibility,
+capacity constraints, system fragmentation, AI implementation gaps.
+
+| Cluster | Priority | Concepts (content framing) | Audience language (search terms, draft) |
+|---|---|---|---|
+| A. Hidden inefficiencies | high | Revenue leakage; hidden costs of manual processes; information handoff failures; work trapped in spreadsheets; processes dependent on one employee | "drowning in admin", "manual data entry", "copy and paste between", "only one person knows how", "fell through the cracks" |
+| B. Performance & decisions | medium | Measuring operational efficiency; operational KPIs; capacity utilisation; cost of inefficiency; ROI of process improvement | "don't know my numbers", "which KPIs should I track", "busy but not profitable", "where is the money going", "how do I measure" |
+| C. AI implementation | medium | AI readiness; AI implementation failures; workflow reliability; measuring AI ROI; when not to use AI | "AI didn't work for my business", "is AI worth it", "chatbot annoyed customers", "AI tools waste of money", "AI made mistakes" |
+| D. Systems & infrastructure | medium | Disconnected systems; data silos; single source of truth; manual reporting bottlenecks; operational visibility | "tools don't talk to each other", "too many apps", "double entry", "weekly report takes hours", "Zapier broke" |
+| E. Scaling | high | Founder dependency; outgrowing spreadsheets; scaling without headcount; hire vs automate; standardising processes | "business can't run without me", "can't take a holiday", "everything goes through me", "outgrew spreadsheets", "hire or automate" |
+| F. Revenue & customer journey | medium | Enquiry-to-payment process; unconverted enquiries; onboarding bottlenecks; delayed invoicing and cash flow; journey breakdowns | "quotes not converting", "clients ghost after quote", "chasing invoices", "onboarding takes forever", "customers slipping through" |
+| Saturation benchmark | benchmark | — | missed calls, appointment reminders, booking automation, CRM for small business, lead follow-up, speed to lead |
+
+The saturation benchmark is not a content target. It measures where competitors crowd, so gap
+scores can show which clusters are under-served by comparison. Audience-language terms are a
+draft: comment mining replaces them with the owners' actual phrasing as research runs.
+
+### Outlier signals (added to the gap score)
+
+| Signal | Question |
+|---|---|
+| Engagement vs baseline | Did the post beat its author's normal performance? |
+| Content saturation | Are the same creators repeating the same advice? |
+| Discussion gaps | Are people asking questions existing content does not answer? |
+| Commercial relevance | Does the problem connect to revenue, cost, capacity or risk? |
+| Audience relevance | Are owners, founders and operators discussing it (not only builders)? |
+| Contribution | Can Rose add a more useful perspective than what exists? |
+| Search demand (optional) | Searched for? Used as a signal only; low volume never disqualifies |
+
+Scope: social content first (LinkedIn, plus Reddit and video-platform conversations). SEO/search
+opportunity research is deferred until ContentOS produces blog articles.

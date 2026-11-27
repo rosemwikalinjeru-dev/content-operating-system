@@ -1,0 +1,142 @@
+{
+  "version": 2,
+  "updated": "2026-11-27",
+  "scope": "social content first; SEO deferred",
+  "priority_directions": [
+    "founder dependency",
+    "operational visibility",
+    "capacity constraints",
+    "system fragmentation",
+    "AI implementation gaps"
+  ],
+  "clusters": [
+    {
+      "id": "A",
+      "name": "Hidden inefficiencies",
+      "priority": "high",
+      "concepts": [
+        "Revenue leakage in service businesses",
+        "Hidden costs of manual processes",
+        "Information handoff failures",
+        "Work trapped in spreadsheets",
+        "Business processes dependent on one employee"
+      ],
+      "audience_language": [
+        "drowning in admin",
+        "manual data entry",
+        "copy and paste between",
+        "only one person knows how",
+        "fell through the cracks"
+      ],
+      "audience_language_status": "draft"
+    },
+    {
+      "id": "B",
+      "name": "Performance and decisions",
+      "priority": "medium",
+      "concepts": [
+        "Measuring operational efficiency",
+        "Operational KPIs for growing businesses",
+        "Capacity utilisation in service businesses",
+        "Cost of operational inefficiency",
+        "Measuring ROI of process improvement"
+      ],
+      "audience_language": [
+        "don't know my numbers",
+        "which KPIs should I track",
+        "busy but not profitable",
+        "where is the money going",
+        "how do I measure"
+      ],
+      "audience_language_status": "draft"
+    },
+    {
+      "id": "C",
+      "name": "AI implementation",
+      "priority": "medium",
+      "concepts": [
+        "AI readiness assessment for businesses",
+        "AI implementation failures",
+        "AI workflow reliability",
+        "Measuring AI implementation ROI",
+        "When not to use AI in business"
+      ],
+      "audience_language": [
+        "AI didn't work for my business",
+        "is AI worth it",
+        "chatbot annoyed customers",
+        "AI tools waste of money",
+        "AI made mistakes"
+      ],
+      "audience_language_status": "draft"
+    },
+    {
+      "id": "D",
+      "name": "Systems and infrastructure",
+      "priority": "medium",
+      "concepts": [
+        "Disconnected business systems",
+        "Business data silos",
+        "Single source of truth for business data",
+        "Manual reporting bottlenecks",
+        "Operational visibility across departments"
+      ],
+      "audience_language": [
+        "tools don't talk to each other",
+        "too many apps",
+        "double entry",
+        "weekly report takes hours",
+        "Zapier broke"
+      ],
+      "audience_language_status": "draft"
+    },
+    {
+      "id": "E",
+      "name": "Scaling",
+      "priority": "high",
+      "concepts": [
+        "Founder dependency in business operations",
+        "When a business outgrows its spreadsheets",
+        "Scaling without increasing headcount",
+        "When to hire versus automate",
+        "Standardising processes across teams"
+      ],
+      "audience_language": [
+        "business can't run without me",
+        "can't take a holiday",
+        "everything goes through me",
+        "outgrew spreadsheets",
+        "hire or automate"
+      ],
+      "audience_language_status": "draft"
+    },
+    {
+      "id": "F",
+      "name": "Revenue and customer journey",
+      "priority": "medium",
+      "concepts": [
+        "Enquiry to payment process",
+        "Unconverted enquiries analysis",
+        "Customer onboarding bottlenecks",
+        "Delayed invoicing and cash flow",
+        "Customer journey breakdowns"
+      ],
+      "audience_language": [
+        "quotes not converting",
+        "clients ghost after quote",
+        "chasing invoices",
+        "onboarding takes forever",
+        "customers slipping through"
+      ],
+      "audience_language_status": "draft"
+    }
+  ],
+  "saturation_benchmark": [
+    "missed calls",
+    "appointment reminders",
+    "booking automation",
+    "CRM for small business",
+    "lead follow-up",
+    "speed to lead"
+  ]
+}
