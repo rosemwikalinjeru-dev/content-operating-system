@@ -2,7 +2,7 @@
 
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
-**Status:** Phase 0 complete and live. Phase 1 (Content intelligence) implemented and tested;
+**Status:** Phases 0 and 1 complete and live. Phase 2 (Research intelligence) built, awaiting the live exit check ([report](docs/PHASE-2-REPORT.md));
 background jobs run inline on Vercel (Plan B). See [Phase 0 report](docs/PHASE-0-REPORT.md) and
 [Phase 1 report](docs/PHASE-1-REPORT.md).
 
@@ -20,8 +20,9 @@ packages/shared/       errors, structured logger, cursor pagination, owner allow
 packages/database/     repositories over a user-scoped Supabase client (RLS always applies);
                        `/service` entry for workers only (service role, explicit user filters)
 packages/provider-gateway/  AI providers, model routing, pricing, budget-enforcing usage controller
-packages/intelligence/ prompt layers, Idea Analyst and Content Strategist agents, voice samples
-jobs/                  Trigger.dev tasks (idea analysis, brief generation)
+packages/intelligence/ prompt layers, Idea Analyst, Content Strategist, research labeller and gap synthesiser
+packages/research-engine/  ScrapeCreators client, response normaliser, outlier and gap scoring
+jobs/                  pipelines (idea analysis, brief, research sweep), inline runner, Trigger.dev tasks
 supabase/migrations/   schema, RLS, storage policies
 tests/db/              migration + RLS tests against a real Postgres
 ```
@@ -99,6 +100,20 @@ Editor and redeploy Vercel.
 Trigger.dev remains supported: set `JOB_RUNNER=trigger` and `TRIGGER_SECRET_KEY` in Vercel, put the
 two secrets above plus `SUPABASE_URL` in Trigger.dev, and run the **Deploy background jobs** workflow
 (needs GitHub secrets `TRIGGER_ACCESS_TOKEN` and `TRIGGER_PROJECT_REF`).
+
+## Research — Phase 2
+
+Add to Vercel → Settings → Environment Variables (Production), then redeploy:
+
+| Secret | Value |
+|---|---|
+| `SCRAPECREATORS_API_KEY` | ScrapeCreators dashboard → API key. Server-side only. |
+| `CRON_SECRET` | Any long random string. Vercel Cron sends it to `/api/v1/cron/research`. |
+
+Apply `supabase/migrations/20261128000100_research.sql` in the Supabase SQL Editor. Then, in the
+app: Research → Keywords → **Import starter keywords**; Research → Competitors → **Import
+watchlist**; Research → **Run sweep**. The weekly sweep (`apps/web/vercel.json`, Mondays 05:17 UTC)
+only runs after you turn it on, which records your approval.
 
 ## Vercel
 

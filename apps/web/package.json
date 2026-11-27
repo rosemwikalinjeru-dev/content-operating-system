@@ -13,6 +13,7 @@
     "@contentos/database": "workspace:*",
     "@contentos/intelligence": "workspace:*",
     "@contentos/jobs": "workspace:*",
+    "@contentos/research-engine": "workspace:*",
     "@contentos/schemas": "workspace:*",
     "@contentos/shared": "workspace:*",
     "@supabase/ssr": "0.12.7",

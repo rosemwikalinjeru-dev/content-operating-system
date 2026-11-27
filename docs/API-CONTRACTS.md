@@ -103,11 +103,36 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief? }`, each one of
-`claude-opus-5-5`, `claude-sonnet-5-5` (default), `claude-haiku-5-5`.
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis? }`, each one of
+`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` (defaults: Sonnet, except research labelling: Haiku).
 
 ### `GET /api/v1/usage`
 `{ today_usd, month_usd, calls_this_month, by_task[], recent[], budgets }` (UTC windows).
+
+## Phase 2 endpoints (research)
+
+All owner-only and RLS-scoped to the default brand.
+
+### Keywords
+- `GET /api/v1/research/queries` — `{ data: ResearchQueryRow[] }`.
+- `POST /api/v1/research/queries` — `{ cluster_id, cluster_name, priority?: high|medium|benchmark, kind?: audience_language|concept|saturation, query, platforms?: (reddit|youtube|tiktok|threads|instagram)[] }`.
+- `PATCH /api/v1/research/queries/:id` — `{ enabled?, priority?, platforms?, query? }` · `DELETE` (hard delete).
+- `POST /api/v1/research/queries/import-starter` — imports `docs/research/research-keywords.json`; idempotent. `{ imported, skipped }`.
+
+### Tracked creators
+- `GET /api/v1/competitors` · `POST /api/v1/competitors` — `{ name, profile_url, relationship?, priority?, study_focus? }`; platform is derived from the URL.
+- `PATCH /api/v1/competitors/:id` — `{ enabled?, relationship?, priority?, study_focus? }` · `DELETE` (soft delete; evidence keeps its link).
+- `POST /api/v1/competitors/import-watchlist` — imports `docs/research/watchlist.json`; `{ imported, skipped, missing_urls }`.
+
+### Sweeps and reports
+- `POST /api/v1/research/run` — `{ cluster_ids?, include_competitors? = true, max_queries? = 6 (1–10), max_credits? = 30 (5–100) }`. `202` job (`research_sweep`). Key: settings + hour.
+- `GET /api/v1/research/reports?limit=&cursor=` · `GET /api/v1/research/reports/:id` — report with `findings { stats, outliers[], gaps[], idea_ids[], notes[] }` and the ideas it created.
+- `POST /api/v1/research/sources/import` — `{ competitor_id, posts: [{ text, url?, author?, published_at?, likes?, comments?, shares? }] (≤50) }`. Stored as `provider: "manual"`; duplicates skipped. `{ imported, skipped }`.
+- `POST /api/v1/research/probe` — `{ platform, mode: search|feed, value }`. Spends 1 credit; returns `{ credits, parsed_items, first_item_fields, shape }` (key paths and types only, never values).
+- `GET /api/v1/research/schedule` · `PUT /api/v1/research/schedule` — `{ enabled }`. Enabling records `approved_at`.
+- `GET /api/v1/cron/research` — Vercel Cron only; requires `Authorization: Bearer $CRON_SECRET`, else `401`. `{ due, started }`.
+
+Research jobs record ScrapeCreators usage in `provider_usage` (`provider: "scrapecreators"`, `unit_type: "credit"`, cost 0 USD — credits are prepaid).
 
 ## Types
 

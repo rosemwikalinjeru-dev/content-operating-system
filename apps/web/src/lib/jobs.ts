@@ -1,12 +1,12 @@
 import "server-only";
 import { createJob, failJobIfActive, failJobToStart, setJobOrchestratorRun, type UserClient } from "@contentos/database";
-import type { analyzeIdeaTask, generateBriefTask } from "@contentos/jobs";
+import type { analyzeIdeaTask, generateBriefTask, researchSweepTask } from "@contentos/jobs";
 import type { JobType } from "@contentos/schemas";
 import { AppError, isAppError, logger } from "@contentos/shared";
 import { after } from "next/server";
 import { createHash } from "node:crypto";
 
-const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief" } as const satisfies Record<JobType, string>;
+const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief", research_sweep: "research-sweep" } as const satisfies Record<JobType, string>;
 
 /**
  * Where background jobs run.
@@ -98,6 +98,9 @@ export function describeJobFailure(err: unknown, ref: string): { code: string; m
         .replace(/\. Set it in.*$/, "")}. (ref ${ref})`,
     };
   }
+  if (err instanceof Error && err.name === "NonRetryableJobError") {
+    return { code: (err as Error & { code?: string }).code ?? "INTERNAL", message: `${err.message} (ref ${ref})` };
+  }
   if (isAppError(err)) {
     const dbCode = (err.details as { dbCode?: string } | undefined)?.dbCode;
     return { code: err.code, message: `${err.message}${dbCode ? ` [${dbCode}]` : ""} (ref ${ref})` };
@@ -111,10 +114,13 @@ export function describeJobFailure(err: unknown, ref: string): { code: string; m
 async function startOnTrigger(db: UserClient, jobType: JobType, jobId: string): Promise<void> {
   try {
     const { tasks } = await import("@trigger.dev/sdk");
+    const opts = { idempotencyKey: jobId };
     const handle =
       jobType === "analyze_idea"
-        ? await tasks.trigger<typeof analyzeIdeaTask>(TASK_IDS.analyze_idea, { jobId }, { idempotencyKey: jobId })
-        : await tasks.trigger<typeof generateBriefTask>(TASK_IDS.generate_brief, { jobId }, { idempotencyKey: jobId });
+        ? await tasks.trigger<typeof analyzeIdeaTask>(TASK_IDS.analyze_idea, { jobId }, opts)
+        : jobType === "generate_brief"
+          ? await tasks.trigger<typeof generateBriefTask>(TASK_IDS.generate_brief, { jobId }, opts)
+          : await tasks.trigger<typeof researchSweepTask>(TASK_IDS.research_sweep, { jobId }, opts);
     await setJobOrchestratorRun(db, jobId, handle.id);
   } catch (err) {
     logger.error("job_trigger_failed", { jobId, error: err instanceof Error ? err.message : String(err) });

@@ -13,6 +13,7 @@ const config: NextConfig = {
     "@contentos/database",
     "@contentos/intelligence",
     "@contentos/jobs",
+    "@contentos/research-engine",
     "@contentos/provider-gateway",
     "@contentos/schemas",
     "@contentos/shared",

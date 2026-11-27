@@ -12,7 +12,7 @@ const RLS_TABLES = [
   "research_sources", "research_reports", "research_report_sources", "content_ideas",
   "prompt_templates", "content_projects", "content_briefs", "production_jobs", "job_steps",
   "content_assets", "content_versions", "carousel_slides", "media_assets", "quality_reviews",
-  "publishing_records", "performance_metrics", "provider_usage",
+  "publishing_records", "performance_metrics", "provider_usage", "research_queries",
 ];
 
 beforeAll(async () => {

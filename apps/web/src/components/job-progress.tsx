@@ -14,6 +14,10 @@ const STEP_LABELS: Record<string, string> = {
   retrieving_knowledge: "Finding related knowledge",
   analyzing: "Analysing the idea",
   writing_brief: "Writing the brief",
+  collecting: "Collecting public posts from your niche and competitors",
+  labelling: "Labelling posts by problem and audience",
+  analysing: "Finding outliers and gaps",
+  creating_ideas: "Turning gaps into ideas",
   done: "Done",
 };
 

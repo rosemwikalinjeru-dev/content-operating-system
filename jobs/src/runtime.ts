@@ -1,3 +1,4 @@
+import { ScrapeCreatorsClient } from "@contentos/research-engine";
 import * as svc from "@contentos/database/service";
 import type { ServiceClient } from "@contentos/database/service";
 import { AnthropicProvider, UsageController, type UsageRecord, type UsageStore } from "@contentos/provider-gateway";
@@ -93,4 +94,11 @@ export function pipelineDeps(): PipelineDeps {
     controller: new UsageController({ providers: [new AnthropicProvider()], store: new SupabaseUsageStore(db), logger }),
   };
   return cached;
+}
+
+/** ScrapeCreators client factory; the key is read server-side only, at run time. */
+export function researchDeps(): { scrapeCreators: () => ScrapeCreatorsClient } {
+  return {
+    scrapeCreators: () => new ScrapeCreatorsClient({ apiKey: (process.env.SCRAPECREATORS_API_KEY ?? "").trim() }),
+  };
 }

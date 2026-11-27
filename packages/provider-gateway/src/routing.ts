@@ -18,6 +18,21 @@ export const DEFAULT_ROUTES: Record<TaskType, ModelRoute> = {
     maxTokens: 8_000,
     expectedOutputTokens: 2_500,
   },
+  // Bulk classification of research posts: cheapest model, low effort.
+  research_labeling: {
+    provider: "anthropic",
+    model: "claude-haiku-5-5",
+    effort: "low",
+    maxTokens: 6_000,
+    expectedOutputTokens: 2_000,
+  },
+  gap_synthesis: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "medium",
+    maxTokens: 10_000,
+    expectedOutputTokens: 3_000,
+  },
   master_brief: {
     provider: "anthropic",
     model: "claude-sonnet-5-5",

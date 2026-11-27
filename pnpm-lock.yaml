@@ -47,6 +47,9 @@ importers:
       '@contentos/jobs':
         specifier: workspace:*
         version: link:../../jobs
+      '@contentos/research-engine':
+        specifier: workspace:*
+        version: link:../../packages/research-engine
       '@contentos/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -111,6 +114,9 @@ importers:
       '@contentos/provider-gateway':
         specifier: workspace:*
         version: link:../packages/provider-gateway
+      '@contentos/research-engine':
+        specifier: workspace:*
+        version: link:../packages/research-engine
       '@contentos/schemas':
         specifier: workspace:*
         version: link:../packages/schemas
@@ -160,6 +166,8 @@ importers:
       zod:
         specifier: 4.6.7
         version: 4.6.7
+
+  packages/research-engine: {}
 
   packages/schemas:
     dependencies:

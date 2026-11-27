@@ -2,7 +2,7 @@
 
 Date: 2026-11-27
 Exit condition: *"An idea becomes an approved structured brief"*, with every AI call costed.
-Status: **implemented and tested locally; background jobs switched to the inline runner (Plan B); live demonstration pending Vercel secrets.**
+Status: **COMPLETE — exit condition demonstrated by the owner on the live deployment, 2026-11-27** (idea analysed, brief generated and approved; background jobs inline on Vercel).
 
 ## 0. Plan B (2026-11-27)
 

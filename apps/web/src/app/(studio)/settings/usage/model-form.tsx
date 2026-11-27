@@ -14,6 +14,8 @@ const MODELS: Array<{ id: ModelChoice; label: string; note: string }> = [
 const TASKS: Array<{ key: keyof ModelRoutes; label: string; hint: string }> = [
   { key: "idea_analysis", label: "Idea analysis", hint: "Claims, genericity check, angles" },
   { key: "master_brief", label: "Master brief", hint: "Argument, hooks, content type" },
+  { key: "research_labeling", label: "Research labelling", hint: "Bulk tagging of collected posts (Haiku is enough)" },
+  { key: "gap_synthesis", label: "Research gap ideas", hint: "Turns niche gaps into Inbox ideas" },
 ];
 
 export function ModelForm({ routes }: { routes: ModelRoutes }) {
@@ -21,6 +23,8 @@ export function ModelForm({ routes }: { routes: ModelRoutes }) {
   const [values, setValues] = useState<Record<keyof ModelRoutes, ModelChoice>>({
     idea_analysis: routes.idea_analysis ?? "claude-sonnet-5-5",
     master_brief: routes.master_brief ?? "claude-sonnet-5-5",
+    research_labeling: routes.research_labeling ?? "claude-haiku-5-5",
+    gap_synthesis: routes.gap_synthesis ?? "claude-sonnet-5-5",
   });
   const [state, setState] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string }>({ kind: "idle" });
 

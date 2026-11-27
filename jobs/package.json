@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./runner": "./src/runner.ts"
+    "./runner": "./src/runner.ts",
+    "./cron": "./src/cron.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -16,6 +17,7 @@
     "@contentos/database": "workspace:*",
     "@contentos/intelligence": "workspace:*",
     "@contentos/provider-gateway": "workspace:*",
+    "@contentos/research-engine": "workspace:*",
     "@contentos/schemas": "workspace:*",
     "@contentos/shared": "workspace:*",
     "@trigger.dev/sdk": "4.8.5",

@@ -1,6 +1,7 @@
 import { AbortTaskRunError, task } from "@trigger.dev/sdk";
 import { NonRetryableJobError, runAnalyzeIdea, runGenerateBrief } from "../pipeline";
-import { pipelineDeps } from "../runtime";
+import { runResearchSweep } from "../research";
+import { pipelineDeps, researchDeps } from "../runtime";
 
 export interface JobPayload {
   jobId: string;
@@ -35,5 +36,16 @@ export const generateBriefTask = task({
   retry,
   run: async (payload: JobPayload, { ctx }) => {
     await guard(() => runGenerateBrief(pipelineDeps(), payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }));
+  },
+});
+
+export const researchSweepTask = task({
+  id: "research-sweep",
+  maxDuration: 900,
+  retry,
+  run: async (payload: JobPayload, { ctx }) => {
+    await guard(() =>
+      runResearchSweep({ ...pipelineDeps(), ...researchDeps() }, payload.jobId, { finalAttempt: ctx.attempt.number >= MAX_ATTEMPTS }),
+    );
   },
 });

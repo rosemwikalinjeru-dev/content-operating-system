@@ -392,3 +392,4 @@ export async function insertUsage(db: ServiceClient, row: Record<string, unknown
   const { error } = await db.from("provider_usage").insert(row);
   if (error) throw fromDatabaseError(error);
 }
+export * from "./research-service";

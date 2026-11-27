@@ -53,13 +53,14 @@ async function promptTemplateId(db: ServiceClient, userId: string, t: PromptTemp
 }
 
 function classify(err: unknown): { code: string; message: string; retryable: boolean } {
+  if (err instanceof NonRetryableJobError) return { code: err.code, message: err.message, retryable: false };
   if (err instanceof ProviderError) return { code: err.kind, message: err.message, retryable: err.retryable };
   if (isAppError(err)) return { code: err.code, message: err.message, retryable: err.status >= 500 && err.code !== "INTERNAL" };
   return { code: "INTERNAL", message: "Unexpected error while running the job.", retryable: true };
 }
 
 /** Run one step with failure bookkeeping shared by every pipeline. */
-async function runStep<T extends Record<string, unknown>>(
+export async function runStep<T extends Record<string, unknown>>(
   deps: PipelineDeps,
   job: svc.JobRecord,
   opts: RunOptions,
