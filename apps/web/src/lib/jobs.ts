@@ -93,7 +93,9 @@ export function describeJobFailure(err: unknown, ref: string): { code: string; m
   if (err instanceof Error && err.message.startsWith("Worker environment")) {
     return {
       code: "SERVICE_UNAVAILABLE",
-      message: `Background jobs are not configured: ${err.message.replace(/^Worker environment is missing or invalid: /, "").replace(/\. Set them.*$/, "")} missing or invalid in Vercel. (ref ${ref})`,
+      message: `Background jobs are not configured correctly in Vercel: ${err.message
+        .replace(/^Worker environment is missing or invalid: /, "")
+        .replace(/\. Set it in.*$/, "")}. (ref ${ref})`,
     };
   }
   if (isAppError(err)) {

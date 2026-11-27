@@ -43,6 +43,30 @@ export class SupabaseUsageStore implements UsageStore {
   }
 }
 
+/**
+ * Detect the most common setup mistake: the publishable/anon key pasted where the secret
+ * (service_role) key belongs. It would otherwise surface as Postgres 42501 "permission denied".
+ * Returns a sentence describing the problem, or null if the key looks right.
+ */
+export function serviceKeyProblem(key: string): string | null {
+  if (key.startsWith("sb_publishable_")) {
+    return "SUPABASE_SERVICE_ROLE_KEY is the publishable key; use the secret key (starts with sb_secret_)";
+  }
+  if (key.startsWith("sb_secret_")) return null;
+  const parts = key.split(".");
+  if (parts.length === 3) {
+    try {
+      const role = (JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf8")) as { role?: string }).role;
+      if (role && role !== "service_role") {
+        return `SUPABASE_SERVICE_ROLE_KEY is the ${role} key; use the service_role (secret) key`;
+      }
+    } catch {
+      // Not a JWT we can read; let the database decide.
+    }
+  }
+  return null;
+}
+
 let cached: PipelineDeps | undefined;
 
 export function pipelineDeps(): PipelineDeps {
@@ -52,8 +76,14 @@ export function pipelineDeps(): PipelineDeps {
     SUPABASE_URL: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
   });
   if (!parsed.success) {
-    const names = [...new Set(parsed.error.issues.map((i) => String(i.path[0])))].join(", ");
-    throw new Error(`Worker environment is missing or invalid: ${names}. Set them in the job runner's environment (Vercel or Trigger.dev).`);
+    const names = [...new Set(parsed.error.issues.map((i) => String(i.path[0])))];
+    throw new Error(
+      `Worker environment is missing or invalid: ${names.join(", ")} ${names.length > 1 ? "are" : "is"} missing or invalid. Set it in the job runner's environment (Vercel or Trigger.dev).`,
+    );
+  }
+  const keyProblem = serviceKeyProblem(parsed.data.SUPABASE_SERVICE_ROLE_KEY);
+  if (keyProblem) {
+    throw new Error(`Worker environment is missing or invalid: ${keyProblem}. Set it in the job runner's environment (Vercel or Trigger.dev).`);
   }
   const db = svc.createServiceClient(parsed.data.SUPABASE_URL, parsed.data.SUPABASE_SERVICE_ROLE_KEY);
   const logger = baseLogger.child({ component: "jobs" });

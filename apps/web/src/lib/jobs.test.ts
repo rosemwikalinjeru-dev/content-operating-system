@@ -90,8 +90,11 @@ describe("describeJobFailure", () => {
     expect(migration.message).toMatch(/missing a migration.*\[42703\].*ref abcd1234/);
     const key = describeJobFailure(fromDatabaseError({ message: "Invalid API key" }), "r1");
     expect(key.message).toContain("SUPABASE_SERVICE_ROLE_KEY");
-    const env = describeJobFailure(new Error("Worker environment is missing or invalid: ANTHROPIC_API_KEY. Set them in the job runner's environment (Vercel or Trigger.dev)."), "r2");
-    expect(env.message).toContain("ANTHROPIC_API_KEY missing or invalid in Vercel");
+    const env = describeJobFailure(
+      new Error("Worker environment is missing or invalid: ANTHROPIC_API_KEY is missing or invalid. Set it in the job runner's environment (Vercel or Trigger.dev)."),
+      "r2",
+    );
+    expect(env.message).toBe("Background jobs are not configured correctly in Vercel: ANTHROPIC_API_KEY is missing or invalid. (ref r2)");
     expect(describeJobFailure(new TypeError("boom"), "r3").message).toContain("TypeError");
   });
 });

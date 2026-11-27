@@ -138,3 +138,27 @@ describe("approve_brief", () => {
     });
   });
 });
+
+describe("service_role grants", () => {
+  it("background jobs (service_role) can read and write application tables", async () => {
+    await asAdmin(db, async () => {
+      await db.query("set local role service_role");
+      const { rows } = await db.query("select count(*)::int as n from public.production_jobs");
+      expect(rows[0].n).toBeGreaterThanOrEqual(0);
+      await db.query(
+        `insert into public.provider_usage (user_id, provider, model, task_type, status) values ($1, 'anthropic', 'm', 't', 'success')`,
+        [alice],
+      );
+    });
+  });
+
+  it("the anon role still has no access", async () => {
+    await db.query("begin");
+    try {
+      await db.query("set local role anon");
+      expect(await expectError(db, "select 1 from public.production_jobs limit 1")).toBe("42501");
+    } finally {
+      await db.query("rollback");
+    }
+  });
+});
