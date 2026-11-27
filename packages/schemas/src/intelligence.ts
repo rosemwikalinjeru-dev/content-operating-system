@@ -5,10 +5,60 @@ import { PaginationQuery, Uuid } from "./common";
 // plain types only: no transforms, no defaults, no recursion.
 
 // ---------------------------------------------------------------------------
+// Hook craft (shared with Phase 2 research labelling)
+// ---------------------------------------------------------------------------
+
+/** Hook pattern taxonomy (docs/research/COMPETITOR-WATCHLIST.md). */
+export const HOOK_PATTERNS = [
+  "specific_scenario",
+  "hidden_cost",
+  "commercial_insight",
+  "strong_opinion",
+  "counterintuitive",
+  "unexpected_truth",
+  "personal_lesson",
+  "pain_recognition",
+  "question",
+] as const;
+export const HookPattern = z.enum(HOOK_PATTERNS);
+export type HookPattern = z.infer<typeof HookPattern>;
+
+/** How the post is delivered: its shape and pacing. */
+export const POST_STRUCTURES = [
+  "story_to_lesson",
+  "numbered_scenes",
+  "contrast",
+  "short_list",
+  "steps",
+  "single_idea",
+  "before_after",
+] as const;
+export const PostStructure = z.enum(POST_STRUCTURES);
+export type PostStructure = z.infer<typeof PostStructure>;
+
+export const Angle = z.object({
+  angle: z.string().describe("The angle in one plain sentence."),
+  specific_moment: z
+    .string()
+    .describe("The concrete, observable moment the post is built on: who, when, what happened. Never a concept."),
+  hook_pattern: HookPattern,
+  sample_hook: z
+    .string()
+    .describe("One or two short opening lines in the owner's voice. Use [square-bracket placeholders] for any number or detail only the owner knows."),
+  structure: PostStructure,
+  why: z.string().describe("Why this angle is specific to this owner and would make a business owner stop."),
+  needs_from_owner: z
+    .string()
+    .nullable()
+    .describe("What the owner must supply for the angle to be true (a real moment, number or example), or null if none."),
+});
+export type Angle = z.infer<typeof Angle>;
+
+// ---------------------------------------------------------------------------
 // Idea analysis
 // ---------------------------------------------------------------------------
 
-export const IdeaAnalysis = z.object({
+export const IdeaAnalysisOutput = z.object({
   summary: z.string().describe("One or two sentences restating the idea in plain words."),
   core_argument: z.string().describe("The single claim the content would argue."),
   claims: z
@@ -31,9 +81,21 @@ export const IdeaAnalysis = z.object({
       .describe("Questions that pull out the owner's specific observation, example or experience."),
   }),
   audience_fit: z.string().describe("Who this is for and why they would care, in the audience's own terms."),
-  suggested_angles: z.array(z.object({ angle: z.string(), why: z.string() })),
+  suggested_angles: z
+    .array(Angle)
+    .describe("Three to five angles, each with a different hook_pattern and a different specific_moment."),
   related_knowledge_ids: z.array(z.string()).describe("IDs of supplied knowledge entries this idea connects to."),
   recommended_next_step: z.enum(["create_brief", "sharpen_idea", "gather_evidence"]),
+});
+
+/**
+ * Stored analysis, as read back for display and for brief generation. Analyses saved by
+ * Idea Analyst v1 only had { angle, why } per angle, so the newer angle fields are optional here.
+ */
+export const IdeaAnalysis = IdeaAnalysisOutput.extend({
+  suggested_angles: z.array(
+    Angle.partial().extend({ angle: z.string(), why: z.string() }),
+  ),
 });
 export type IdeaAnalysis = z.infer<typeof IdeaAnalysis>;
 

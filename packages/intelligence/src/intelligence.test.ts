@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { IdeaAnalysis, MasterBrief, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
+import { IdeaAnalysis, IdeaAnalysisOutput, MasterBrief, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
 import { describe, expect, it } from "vitest";
 import { buildBriefRequest, buildIdeaAnalysisRequest, finaliseBrief, IDEA_ANALYST, STRATEGIST } from "./agents";
 import { asData, composeSystem, GLOBAL_RULES, renderBrandDna, templateHash } from "./prompts";
@@ -61,7 +61,30 @@ describe("agents", () => {
   it("idea analysis targets the right task and schema", () => {
     const req = buildIdeaAnalysisRequest({ brand, examples, related }, idea);
     expect(req.task).toBe("idea_analysis");
-    expect(req.schema).toBe(IdeaAnalysis);
+    expect(req.schema).toBe(IdeaAnalysisOutput);
+  });
+
+  it("requires structured angles from the model but still reads v1 analyses", () => {
+    const base = {
+      summary: "s", core_argument: "c", claims: [], missing_information: [], audience_fit: "a",
+      genericity: { is_generic: false, reason: "r", sharpening_questions: [] }, related_knowledge_ids: [],
+      recommended_next_step: "create_brief" as const,
+    };
+    const v1Angle = { angle: "The voicemail nobody opens", why: "visual" };
+    expect(IdeaAnalysisOutput.safeParse({ ...base, suggested_angles: [v1Angle] }).success).toBe(false);
+    expect(IdeaAnalysis.safeParse({ ...base, suggested_angles: [v1Angle] }).success).toBe(true);
+    const v2Angle = {
+      ...v1Angle, specific_moment: "Friday 6pm call", hook_pattern: "specific_scenario", sample_hook: "They called at 6pm.",
+      structure: "story_to_lesson", needs_from_owner: null,
+    };
+    expect(IdeaAnalysisOutput.safeParse({ ...base, suggested_angles: [v2Angle] }).success).toBe(true);
+  });
+
+  it("gives both writing agents the craft rules", () => {
+    expect(IDEA_ANALYST.text).toContain("Hook and delivery craft");
+    expect(STRATEGIST.text).toContain("Hook and delivery craft");
+    expect(IDEA_ANALYST.version).toBe(2);
+    expect(STRATEGIST.version).toBe(2);
   });
 
   it("brief includes analysis, formats and owner guidance", () => {

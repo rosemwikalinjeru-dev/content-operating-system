@@ -13,6 +13,8 @@ const NEXT_STEP: Record<IdeaAnalysis["recommended_next_step"], string> = {
   gather_evidence: "Gather evidence first",
 };
 
+const label = (v: string) => v.replaceAll("_", " ");
+
 export function AnalysisView({ analysis, analyzedAt }: { analysis: IdeaAnalysis; analyzedAt: string | null }) {
   return (
     <section className="space-y-4" aria-labelledby="analysis-heading">
@@ -76,16 +78,31 @@ export function AnalysisView({ analysis, analyzedAt }: { analysis: IdeaAnalysis;
       )}
 
       {analysis.suggested_angles.length > 0 && (
-        <div className="card">
-          <p className="mb-2 font-semibold">Sharper angles</p>
-          <ul className="space-y-2 text-sm">
-            {analysis.suggested_angles.map((a) => (
-              <li key={a.angle}>
-                <span className="font-medium">{a.angle}</span>
-                <span className="text-muted"> — {a.why}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="space-y-3">
+          <p className="font-semibold">Angles</p>
+          {analysis.suggested_angles.map((a) => (
+            <article key={a.angle} className="card space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {a.hook_pattern && <span className="chip">{label(a.hook_pattern)}</span>}
+                {a.structure && <span className="chip">{label(a.structure)}</span>}
+              </div>
+              {a.sample_hook && <p className="font-display text-xl whitespace-pre-line">{a.sample_hook}</p>}
+              <p className="text-sm font-medium">{a.angle}</p>
+              {a.specific_moment && (
+                <p className="text-sm">
+                  <span className="text-muted">Moment: </span>
+                  {a.specific_moment}
+                </p>
+              )}
+              <p className="text-sm text-muted">{a.why}</p>
+              {a.needs_from_owner && (
+                <p className="border-l-4 border-l-[var(--color-gold)] pl-3 text-sm">
+                  <span className="font-medium">You supply: </span>
+                  {a.needs_from_owner}
+                </p>
+              )}
+            </article>
+          ))}
         </div>
       )}
     </section>

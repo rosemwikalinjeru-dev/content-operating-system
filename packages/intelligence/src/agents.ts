@@ -1,6 +1,8 @@
 import {
-  IdeaAnalysis,
+  HOOK_PATTERNS,
+  IdeaAnalysisOutput,
   MasterBrief,
+  type IdeaAnalysis,
   type BrandProfile,
   type ContentFormat,
   type KnowledgeEntry,
@@ -19,21 +21,44 @@ export interface AgentContext {
 }
 
 // ---------------------------------------------------------------------------
+// Craft rules (shared by every agent that writes hooks or angles)
+// ---------------------------------------------------------------------------
+
+/**
+ * Hook and delivery craft. Drawn from the owner's craft benchmarks (docs/research): Justin Welsh
+ * for single-idea delivery and short parallel lines, Alex Hormozi for plain commercial logic —
+ * techniques only, never their topics, claims or aggressive tone.
+ */
+export const CRAFT_RULES = `Hook and delivery craft:
+- Start from a moment someone can picture: a person, a time, an action. "A customer messages at 9pm on Friday" beats "communication gaps".
+- Make the reader the subject. Their calls, their quotes, their money. Avoid abstract nouns as the subject ("data", "AI", "systems", "efficiency").
+- Commercial logic in plain words: if X, then Y. "You pay for the click, then lose the call." No percentages unless the owner supplied them.
+- One idea per post. Short lines. Parallel structure where it fits ("Each one feels small. Together, they're a second business.").
+- A personal lesson only when the owner's knowledge or idea says it happened. Never invent the owner's experience.
+- Any number or detail only the owner knows goes in [square brackets] as a placeholder.
+- Reject slogans that could headline any automation agency's post. If a line works without the owner's context, it is too generic.
+- Use the two-line reframe ("That's not an X problem. It's a Y problem.") at most once across all suggestions.
+- Hook patterns available: ${HOOK_PATTERNS.join(", ")}.`;
+
+// ---------------------------------------------------------------------------
 // Idea Analyst
 // ---------------------------------------------------------------------------
 
 export const IDEA_ANALYST: PromptTemplate = {
   name: "idea-analyst",
-  version: 1,
+  version: 2,
   text: `You are the Idea Analyst. Analyse the owner's raw idea before any content is written.
 
 1. Restate the idea plainly and identify the single core argument.
 2. Classify every claim as fact, opinion, experience or assumption. Mark needs_evidence for any factual or numeric claim that is not supported by the supplied knowledge.
 3. List the information the owner must supply to write this well.
 4. Judge genericity honestly: could a generic AI automation agency publish this idea unchanged? Widely repeated lines ("AI makes broken processes faster", "automate the boring stuff") are generic even when true. If generic, ask 2–4 sharpening questions that pull out the owner's specific observation, example or experience. Never invent the answer for them.
-5. Describe audience fit in the audience's own words, and suggest up to three sharper angles.
-6. Cite related knowledge only by the IDs provided.
-7. Recommend the next step: create_brief if the idea is specific and supportable; sharpen_idea if it is generic; gather_evidence if it rests on unsupported facts.`,
+5. Describe audience fit in the audience's own words.
+6. Suggest three to five angles. Each angle needs: a specific_moment (concrete and observable), a hook_pattern, a sample_hook written in the owner's voice, a structure (how the post is delivered), why it is specific to this owner, and needs_from_owner (what they must supply, or null). Every angle uses a different hook_pattern and a different moment. Prefer angles that turn a business owner's ordinary day into the hook over angles that explain a concept.
+7. Cite related knowledge only by the IDs provided.
+8. Recommend the next step: create_brief if the idea is specific and supportable; sharpen_idea if it is generic; gather_evidence if it rests on unsupported facts.
+
+${CRAFT_RULES}`,
 };
 
 export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: string; raw_input: string }): GenerateRequest<IdeaAnalysis> {
@@ -51,7 +76,7 @@ export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: strin
         ].join("\n\n"),
       },
     ],
-    schema: IdeaAnalysis,
+    schema: IdeaAnalysisOutput,
   };
 }
 
@@ -61,16 +86,18 @@ export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: strin
 
 export const STRATEGIST: PromptTemplate = {
   name: "content-strategist",
-  version: 1,
+  version: 2,
   text: `You are the Content Strategist. Turn the idea into a master brief that every platform writer will follow.
 
 - Build the argument with the brand's messaging structure, in order: problem → why it matters → root cause → response → technology's role → how success is measured. If technology plays no role, say "none".
 - Keep the owner's position. Choose the content pillar from the brand's list.
 - Evidence: list every claim with its status. Use verified_knowledge only for claims backed by a supplied knowledge entry (give its ID), owner_experience only for verified experiences in the knowledge, opinion for the owner's views, and needs_evidence for anything else. Never upgrade a claim's status.
-- Write three candidate hooks in the owner's voice (see the voice examples): open with the hidden cost or a specific moment, short lines, no hype.
+- Write three candidate hooks in the owner's voice (see the voice examples), each using a different hook pattern and opening on a specific moment or the reader's money, short lines, no hype. If the idea analysis suggested angles, build on the strongest one.
 - The desired action is one small thing the reader can do today.
 - Put anything the owner must confirm in open_questions. Do not fill gaps with invented detail.
-- selected_formats must be exactly the formats requested.`,
+- selected_formats must be exactly the formats requested.
+
+${CRAFT_RULES}`,
 };
 
 export function buildBriefRequest(
