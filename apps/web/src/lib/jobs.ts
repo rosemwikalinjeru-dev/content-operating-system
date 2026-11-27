@@ -2,7 +2,7 @@ import "server-only";
 import { createJob, failJobIfActive, failJobToStart, setJobOrchestratorRun, type UserClient } from "@contentos/database";
 import type { analyzeIdeaTask, generateBriefTask } from "@contentos/jobs";
 import type { JobType } from "@contentos/schemas";
-import { AppError, logger } from "@contentos/shared";
+import { AppError, isAppError, logger } from "@contentos/shared";
 import { after } from "next/server";
 import { createHash } from "node:crypto";
 
@@ -70,16 +70,40 @@ function startInline(db: UserClient, jobType: JobType, jobId: string): void {
       const { runJobInline } = await import("@contentos/jobs/runner");
       await runJobInline(jobType, jobId);
     } catch (err) {
-      const configError = err instanceof Error && err.message.startsWith("Worker environment");
-      logger.error("inline_job_failed", { jobId, jobType, error: err instanceof Error ? err.message : String(err) });
-      await failJobIfActive(db, jobId, {
-        code: configError ? "SERVICE_UNAVAILABLE" : "INTERNAL",
-        message: configError
-          ? "Background jobs are not configured. Check SUPABASE_SERVICE_ROLE_KEY and ANTHROPIC_API_KEY in Vercel."
-          : "The job stopped unexpectedly. Try again.",
-      }).catch((e) => logger.error("inline_job_fail_mark_failed", { jobId, error: String(e) }));
+      const ref = crypto.randomUUID().slice(0, 8);
+      logger.error("inline_job_failed", {
+        ref,
+        jobId,
+        jobType,
+        error: err instanceof Error ? { name: err.name, message: err.message } : String(err),
+        details: isAppError(err) ? err.details : undefined,
+      });
+      await failJobIfActive(db, jobId, describeJobFailure(err, ref)).catch((e) =>
+        logger.error("inline_job_fail_mark_failed", { jobId, error: String(e) }),
+      );
     }
   });
+}
+
+/**
+ * A readable, non-secret explanation for a job that failed outside a recorded step. AppError
+ * messages are written to be shown; anything else is summarised with a log reference.
+ */
+export function describeJobFailure(err: unknown, ref: string): { code: string; message: string } {
+  if (err instanceof Error && err.message.startsWith("Worker environment")) {
+    return {
+      code: "SERVICE_UNAVAILABLE",
+      message: `Background jobs are not configured: ${err.message.replace(/^Worker environment is missing or invalid: /, "").replace(/\. Set them.*$/, "")} missing or invalid in Vercel. (ref ${ref})`,
+    };
+  }
+  if (isAppError(err)) {
+    const dbCode = (err.details as { dbCode?: string } | undefined)?.dbCode;
+    return { code: err.code, message: `${err.message}${dbCode ? ` [${dbCode}]` : ""} (ref ${ref})` };
+  }
+  if (err instanceof Error && "code" in err && (err as { code?: string }).code) {
+    return { code: "INTERNAL", message: `The job failed: ${err.name} ${(err as { code?: string }).code}. (ref ${ref})` };
+  }
+  return { code: "INTERNAL", message: `The job stopped unexpectedly (${err instanceof Error ? err.name : "unknown error"}). Try again. (ref ${ref})` };
 }
 
 async function startOnTrigger(db: UserClient, jobType: JobType, jobId: string): Promise<void> {

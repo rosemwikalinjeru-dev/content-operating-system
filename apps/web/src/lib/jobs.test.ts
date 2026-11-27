@@ -82,6 +82,20 @@ describe("inline runner (default)", () => {
   });
 });
 
+describe("describeJobFailure", () => {
+  it("explains missing migrations and bad keys instead of a generic message", async () => {
+    const { describeJobFailure } = await import("./jobs");
+    const { fromDatabaseError } = await import("@contentos/shared");
+    const migration = describeJobFailure(fromDatabaseError({ code: "42703" }), "abcd1234");
+    expect(migration.message).toMatch(/missing a migration.*\[42703\].*ref abcd1234/);
+    const key = describeJobFailure(fromDatabaseError({ message: "Invalid API key" }), "r1");
+    expect(key.message).toContain("SUPABASE_SERVICE_ROLE_KEY");
+    const env = describeJobFailure(new Error("Worker environment is missing or invalid: ANTHROPIC_API_KEY. Set them in the job runner's environment (Vercel or Trigger.dev)."), "r2");
+    expect(env.message).toContain("ANTHROPIC_API_KEY missing or invalid in Vercel");
+    expect(describeJobFailure(new TypeError("boom"), "r3").message).toContain("TypeError");
+  });
+});
+
 describe("Trigger.dev runner (JOB_RUNNER=trigger)", () => {
   beforeEach(() => {
     process.env.JOB_RUNNER = "trigger";

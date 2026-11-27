@@ -42,6 +42,10 @@ describe("errors", () => {
     expect(e.message).not.toContain("constraint");
     expect(fromDatabaseError({ code: "XX000" }).code).toBe("INTERNAL");
     expect(fromDatabaseError({ code: "PGRST116" }).status).toBe(404);
+    expect(fromDatabaseError({ code: "42703", message: "column content_ideas.analysis_input_hash does not exist" }).message).toContain("missing a migration");
+    expect(fromDatabaseError({ code: "PGRST202" }).message).toContain("missing a migration");
+    expect(fromDatabaseError({ message: "Invalid API key" }).message).toContain("SUPABASE_SERVICE_ROLE_KEY");
+    expect(fromDatabaseError({ code: "PGRST301" }).code).toBe("SERVICE_UNAVAILABLE");
   });
 });
 
