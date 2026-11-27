@@ -17,10 +17,10 @@
     "@contentos/provider-gateway": "workspace:*",
     "@contentos/schemas": "workspace:*",
     "@contentos/shared": "workspace:*",
-    "@trigger.dev/sdk": "4.8.4",
+    "@trigger.dev/sdk": "4.8.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "trigger.dev": "4.8.4"
+    "trigger.dev": "4.8.5"
   }
 }
