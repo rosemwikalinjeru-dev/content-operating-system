@@ -122,6 +122,25 @@ describe("approve_brief", () => {
     });
   });
 
+  it("marks the source idea as briefed", async () => {
+    await asAdmin(db, async () => {
+      const idea = await db.query(
+        "insert into public.content_ideas (user_id, brand_id, title, raw_input, status) values ($1, $2, 'I', 'raw', 'developing') returning id",
+        [alice, aliceBrand],
+      );
+      const project = await db.query(
+        `insert into public.content_projects (user_id, brand_id, idea_id, title, production_mode) values ($1, $2, $3, 'P', 'idea_to_content') returning id`,
+        [alice, aliceBrand, idea.rows[0].id],
+      );
+      const b = await db.query(`insert into public.content_briefs (user_id, project_id, brief) values ($1, $2, '{}') returning id`, [alice, project.rows[0].id]);
+      await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: alice })]);
+      await db.query("set local role authenticated");
+      await db.query("select public.approve_brief($1)", [b.rows[0].id]);
+      const { rows } = await db.query("select status from public.content_ideas where id = $1", [idea.rows[0].id]);
+      expect(rows[0].status).toBe("briefed");
+    });
+  });
+
   it("cannot approve another user's brief", async () => {
     await asAdmin(db, async () => {
       const project = await db.query(

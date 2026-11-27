@@ -115,8 +115,8 @@ describe("write_content pipeline", () => {
     await expect(runWriteContent(deps(controller()), "job-1", { finalAttempt: false })).rejects.toBeInstanceOf(NonRetryableJobError);
   });
 
-  it("keeps the formats that succeeded when one writer fails, and surfaces a budget stop as final", async () => {
-    const c = controller(new ProviderError("budget", "Daily budget reached.", false));
+  it("keeps the formats that succeeded when one writer fails, and surfaces a non-retryable failure as final", async () => {
+    const c = controller(new ProviderError("refusal", "The model declined.", { retryable: false }));
     await expect(runWriteContent(deps(c), "job-1", { finalAttempt: false })).rejects.toBeInstanceOf(NonRetryableJobError);
     expect(svc.addVersion).toHaveBeenCalledTimes(1);
     expect(svc.finishStep).toHaveBeenCalledWith(expect.anything(), expect.anything(), "step-write_linkedin", expect.objectContaining({ status: "completed" }));

@@ -38,6 +38,14 @@ Status: **BUILT — awaiting the owner's exit check.** First apply `202611290001
   - database writing tests (3): atomic numbering, a single approved version, immutability, one asset per format, and cross-tenant attempts refused
 - Typecheck, lint and `next build` are clean. No secret names appear in client bundles.
 
+## 3A. Fix: approved brief not visible on the dashboard (2026-11-27)
+
+- **Symptom:** after a brief was approved, the dashboard did not change.
+- **Cause:** `approve_brief` updated the project but never moved the source idea from "developing" to "briefed". The dashboard only counted ideas by status, so the approval never showed.
+- **Fix:**
+  - Migration `20261129000200_brief_marks_idea.sql` marks the idea as briefed on approval and backfills ideas that were already approved. A database test covers it.
+  - The dashboard now also shows "Briefs awaiting approval" and a Projects list with each project's stage.
+
 ## 4. Known limitations
 
 1. Only 4 voice examples are in the knowledge base. Adding more of your strong posts is the biggest quality lever.
