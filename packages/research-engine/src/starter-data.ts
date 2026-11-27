@@ -148,7 +148,7 @@ export const STARTER_KEYWORDS = {
 
 export const STARTER_WATCHLIST = {
   "source": "Owner-supplied list, 2026-11-27",
-  "note": "Profile URLs supplied by the owner on 2026-11-27 (tracking parameters removed). Still missing: Nick Saraev, Isabella Bedoya.",
+  "note": "Profile URLs supplied by the owner on 2026-11-27 (tracking parameters removed). Nick Saraev and Isabella Bedoya removed by the owner on 2026-11-27.",
   "competitors": [
     {
       "name": "Nate Herk",
@@ -163,18 +163,6 @@ export const STARTER_WATCHLIST = {
       ]
     },
     {
-      "name": "Nick Saraev",
-      "relationship": "direct_competitor",
-      "priority": null,
-      "study_focus": "Linking automation to marketing and business models; commercial value",
-      "platforms": [
-        {
-          "platform": "linkedin",
-          "profile_url": null
-        }
-      ]
-    },
-    {
       "name": "Liam Ottley",
       "relationship": "direct_competitor",
       "priority": 8,
@@ -183,18 +171,6 @@ export const STARTER_WATCHLIST = {
         {
           "platform": "linkedin",
           "profile_url": "https://www.linkedin.com/in/liamottley/"
-        }
-      ]
-    },
-    {
-      "name": "Isabella Bedoya",
-      "relationship": "direct_competitor",
-      "priority": null,
-      "study_focus": "Connecting owners everyday problems to systems solutions",
-      "platforms": [
-        {
-          "platform": "linkedin",
-          "profile_url": null
         }
       ]
     },

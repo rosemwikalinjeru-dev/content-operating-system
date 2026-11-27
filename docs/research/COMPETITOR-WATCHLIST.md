@@ -20,9 +20,7 @@ away from Brand Guidelines v1.0 (business owners, not automation builders).
 | # | Creator | Type | Research priority | Study focus |
 |---|---|---|---|---|
 | 1 | Nate Herk | direct_competitor | 1 | Breaking down complex workflows; use cases; making technical work accessible |
-| 2 | Nick Saraev | direct_competitor | — | Linking automation to marketing and business models; commercial value |
 | 3 | Liam Ottley | direct_competitor | 8 | Business teardowns; before/after systems; implementation storytelling |
-| 4 | Isabella Bedoya | direct_competitor | — | Connecting owners' everyday problems to systems solutions |
 | 5 | Allie K. Miller | positioning_benchmark | 2 | Executive-level hooks; business implications of AI; strong opinions |
 | 6 | Ethan Mollick | positioning_benchmark | 7 | Evidence-led observations; experiments; stating limitations |
 | 7 | Chris Donnelly | positioning_benchmark | — | Business opportunities for a broad professional audience |
@@ -37,8 +35,8 @@ Priorities are the owner's research priorities, not a verified engagement rankin
 | 13 | Lara Acosta | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
 | 14 | Megan Lieu | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
 
-Profile URLs live in `watchlist.json`. **Missing:** LinkedIn URLs for Nick Saraev and Isabella
-Bedoya, and which other platforms each creator is active on.
+Profile URLs live in `watchlist.json`. Nick Saraev and Isabella Bedoya were removed by the owner (2026-11-27).
+**Missing:** which other platforms each creator is active on.
 
 ## Unverified claims in the source list
 

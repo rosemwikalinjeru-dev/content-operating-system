@@ -3,8 +3,8 @@
 Date: 2026-11-27
 Exit condition (IMPLEMENTATION-PLAN §5A): *one weekly sweep produces at least three evidence-backed
 gap ideas that pass the Idea Analyst.*
-Status: **BUILT — awaiting the owner's live exit check** (needs `SCRAPECREATORS_API_KEY`, `CRON_SECRET`
-and the research migration on the live project).
+Status: **ACCEPTED by the owner (2026-11-27) with refinement ongoing** — first live run: 1 of 3 ideas passed the Idea Analyst; genericity screen added (§4A). Requires `SCRAPECREATORS_API_KEY`, `CRON_SECRET`
+and the research migration on the live project.
 
 ## 1. What was built
 
@@ -99,7 +99,7 @@ Changes:
    - A default sweep (about 16 requests, about 150 posts, 6 Haiku calls and 1 Sonnet call) should fit.
    - If it is cut off, the stale-job check marks it timed out and a re-run reuses the completed steps.
 5. **Starter audience-language terms are drafts.** The owner should edit them on the Keywords tab.
-6. **Missing watchlist URLs:** Nick Saraev and Isabella Bedoya are reported on import and not guessed.
+6. Nick Saraev and Isabella Bedoya were removed from the watchlist by the owner.
 
 ## 6. Owner exit check
 
