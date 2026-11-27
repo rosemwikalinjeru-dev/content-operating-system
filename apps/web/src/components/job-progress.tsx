@@ -18,6 +18,8 @@ const STEP_LABELS: Record<string, string> = {
   labelling: "Labelling posts by problem and audience",
   analysing: "Finding outliers and gaps",
   creating_ideas: "Turning gaps into ideas",
+  writing_formats: "Writing each format in your voice",
+  revising: "Revising the section",
   done: "Done",
 };
 

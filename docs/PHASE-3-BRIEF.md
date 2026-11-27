@@ -1,6 +1,6 @@
 # Phase 3 — Multi-format Writing: Brief
 
-Status: **proposed (2026-11-27), awaiting owner approval.**
+Status: **approved (2026-11-27); built — see PHASE-3-REPORT.md.**
 Exit condition: *an approved brief becomes a LinkedIn post, an X thread, a carousel narrative and a
 short-video script in the owner's voice. Each one is versioned, can be revised one section at a
 time, and every model call is costed.*

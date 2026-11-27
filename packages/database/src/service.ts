@@ -393,3 +393,4 @@ export async function insertUsage(db: ServiceClient, row: Record<string, unknown
   if (error) throw fromDatabaseError(error);
 }
 export * from "./research-service";
+export * from "./writing-service";

@@ -41,6 +41,21 @@ export const DEFAULT_ROUTES: Record<TaskType, ModelRoute> = {
     maxTokens: 4_000,
     expectedOutputTokens: 800,
   },
+  // One call per format; the writers run in parallel.
+  format_writing: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "medium",
+    maxTokens: 10_000,
+    expectedOutputTokens: 2_500,
+  },
+  section_revision: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "low",
+    maxTokens: 4_000,
+    expectedOutputTokens: 600,
+  },
   master_brief: {
     provider: "anthropic",
     model: "claude-sonnet-5-5",

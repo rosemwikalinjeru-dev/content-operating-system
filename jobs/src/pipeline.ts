@@ -48,7 +48,7 @@ export function stableHash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-async function promptTemplateId(db: ServiceClient, userId: string, t: PromptTemplate, purpose: string): Promise<string> {
+export async function promptTemplateId(db: ServiceClient, userId: string, t: PromptTemplate, purpose: string): Promise<string> {
   return svc.ensurePromptTemplate(db, userId, { name: t.name, version: t.version, purpose, body: t.text, hash: templateHash(t) });
 }
 
@@ -91,7 +91,7 @@ export async function runStep<T extends Record<string, unknown>>(
   }
 }
 
-async function complete(deps: PipelineDeps, job: svc.JobRecord): Promise<void> {
+export async function complete(deps: PipelineDeps, job: svc.JobRecord): Promise<void> {
   const actual = await svc.sumSpend(deps.db, { userId: job.user_id, jobId: job.id });
   await svc.updateJob(deps.db, job, {
     status: "completed",
@@ -103,7 +103,7 @@ async function complete(deps: PipelineDeps, job: svc.JobRecord): Promise<void> {
   });
 }
 
-async function loadAndStart(deps: PipelineDeps, jobId: string, type: string): Promise<svc.JobRecord | null> {
+export async function loadAndStart(deps: PipelineDeps, jobId: string, type: string): Promise<svc.JobRecord | null> {
   const job = await svc.loadJob(deps.db, jobId);
   if (job.job_type !== type) throw new NonRetryableJobError("INTERNAL", `Job ${jobId} is ${job.job_type}, not ${type}.`);
   if (job.status === "completed" || job.status === "cancelled") return null;

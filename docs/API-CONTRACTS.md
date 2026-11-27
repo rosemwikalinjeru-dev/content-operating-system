@@ -103,7 +103,7 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening? }`, each one of
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening?, format_writing?, section_revision? }`, each one of
 `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` (defaults: Sonnet, except research labelling: Haiku).
 
 ### `GET /api/v1/usage`
@@ -133,6 +133,26 @@ All owner-only and RLS-scoped to the default brand.
 - `GET /api/v1/cron/research` — Vercel Cron only; requires `Authorization: Bearer $CRON_SECRET`, else `401`. `{ due, started }`.
 
 Research jobs record ScrapeCreators usage in `provider_usage` (`provider: "scrapecreators"`, `unit_type: "credit"`, cost 0 USD — credits are prepaid).
+
+## Phase 3 endpoints (writing)
+
+Every draft body has the same shape: `{ format, sections[{ key: "s1".., kind, text, headline, on_screen, broll }], single_point, cover_test, placeholders[], checks[], edits? }`.
+
+- `POST /api/v1/projects/:id/write`
+  - Body: `{ formats?: ContentFormat[], force?: false }`. Returns `202` with the `write_content` job.
+  - Needs an approved brief, otherwise `409`. A format whose inputs haven't changed reuses its existing version.
+  - `force: true` writes fresh drafts.
+- `GET /api/v1/projects/:id/assets` returns `{ data: ContentAssetView[] }`: one asset per format, with versions newest first.
+- `POST /api/v1/assets/:id/revise`
+  - Body: `{ version, section: "sN", instruction }`. Returns `202` with the `revise_section` job.
+  - The new version gets `parent_version` and `revised_section`. All other sections are copied unchanged.
+- `POST /api/v1/assets/:id/versions`
+  - Body: `{ base_version, sections[{ key, text, headline?, on_screen?, broll? }], note? }`.
+  - Returns `201` with a new human version, whose `body.edits` holds a before/after for each change. Returns `400` if nothing changed.
+- `PATCH /api/v1/versions/:id/approve`
+  - Approves atomically: the previously approved version becomes `superseded`.
+  - Returns `409` while `[placeholders]` remain unfilled.
+- `GET /api/v1/assets/:id/export?version=n` returns a Markdown download, ready to paste.
 
 ## Types
 

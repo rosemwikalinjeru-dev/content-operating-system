@@ -1,4 +1,4 @@
-import { getProject } from "@contentos/database";
+import { activeWritingJob, getProject, listProjectAssets } from "@contentos/database";
 import { MasterBrief, Uuid } from "@contentos/schemas";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { BriefView } from "@/components/brief-view";
 import { JobProgress } from "@/components/job-progress";
 import { requireSession } from "@/lib/auth";
 import { BriefActions } from "./brief-actions";
+import { WritingStudio } from "./writing-studio";
 
 export const metadata: Metadata = { title: "Project" };
 
@@ -35,6 +36,8 @@ export default async function ProjectPage({
   const requested = Number(sp.v);
   const selected = project.briefs.find((b) => b.version === requested) ?? project.briefs[0];
   const parsed = selected ? MasterBrief.safeParse(selected.brief) : null;
+  const hasApprovedBrief = project.briefs.some((b) => b.approval_status === "approved");
+  const [assets, activeJob] = await Promise.all([listProjectAssets(db, project.id), activeWritingJob(db, project.id)]);
 
   return (
     <section className="space-y-6">
@@ -84,6 +87,10 @@ export default async function ProjectPage({
             <BriefActions projectId={project.id} briefId={null} status={null} />
           </div>
         )
+      )}
+
+      {(hasApprovedBrief || assets.length > 0) && (
+        <WritingStudio projectId={project.id} hasApprovedBrief={hasApprovedBrief} assets={assets} activeJob={activeJob} />
       )}
     </section>
   );

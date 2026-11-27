@@ -1,12 +1,12 @@
 import "server-only";
 import { createJob, failJobIfActive, failJobToStart, setJobOrchestratorRun, type UserClient } from "@contentos/database";
-import type { analyzeIdeaTask, generateBriefTask, researchSweepTask } from "@contentos/jobs";
+import type { analyzeIdeaTask, generateBriefTask, researchSweepTask, reviseSectionTask, writeContentTask } from "@contentos/jobs";
 import type { JobType } from "@contentos/schemas";
 import { AppError, isAppError, logger } from "@contentos/shared";
 import { after } from "next/server";
 import { createHash } from "node:crypto";
 
-const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief", research_sweep: "research-sweep" } as const satisfies Record<JobType, string>;
+const TASK_IDS = { analyze_idea: "analyze-idea", generate_brief: "generate-brief", research_sweep: "research-sweep", write_content: "write-content", revise_section: "revise-section" } as const satisfies Record<JobType, string>;
 
 /**
  * Where background jobs run.
@@ -120,7 +120,11 @@ async function startOnTrigger(db: UserClient, jobType: JobType, jobId: string): 
         ? await tasks.trigger<typeof analyzeIdeaTask>(TASK_IDS.analyze_idea, { jobId }, opts)
         : jobType === "generate_brief"
           ? await tasks.trigger<typeof generateBriefTask>(TASK_IDS.generate_brief, { jobId }, opts)
-          : await tasks.trigger<typeof researchSweepTask>(TASK_IDS.research_sweep, { jobId }, opts);
+          : jobType === "research_sweep"
+            ? await tasks.trigger<typeof researchSweepTask>(TASK_IDS.research_sweep, { jobId }, opts)
+            : jobType === "write_content"
+              ? await tasks.trigger<typeof writeContentTask>(TASK_IDS.write_content, { jobId }, opts)
+              : await tasks.trigger<typeof reviseSectionTask>(TASK_IDS.revise_section, { jobId }, opts);
     await setJobOrchestratorRun(db, jobId, handle.id);
   } catch (err) {
     logger.error("job_trigger_failed", { jobId, error: err instanceof Error ? err.message : String(err) });

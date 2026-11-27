@@ -7,12 +7,15 @@
 import type { JobType } from "@contentos/schemas";
 import { NonRetryableJobError, runAnalyzeIdea, runGenerateBrief, type PipelineDeps, type RunOptions } from "./pipeline";
 import { runResearchSweep, type ResearchDeps } from "./research";
+import { runReviseSection, runWriteContent } from "./writing";
 import { pipelineDeps, researchDeps } from "./runtime";
 
 const PIPELINES: Record<JobType, (deps: PipelineDeps, jobId: string, opts: RunOptions) => Promise<void>> = {
   analyze_idea: runAnalyzeIdea,
   generate_brief: runGenerateBrief,
   research_sweep: (deps, jobId, opts) => runResearchSweep(withResearch(deps), jobId, opts),
+  write_content: runWriteContent,
+  revise_section: runReviseSection,
 };
 
 function withResearch(deps: PipelineDeps): ResearchDeps {

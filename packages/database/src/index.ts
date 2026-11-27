@@ -4,3 +4,4 @@ export * from "./ideas";
 export * from "./knowledge";
 export * from "./production";
 export * from "./research";
+export * from "./writing";
