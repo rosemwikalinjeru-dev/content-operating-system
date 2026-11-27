@@ -35,6 +35,10 @@ interface FormState {
   messagePillars: string;
   methodology: string;
   messagingStructure: string;
+  mixGrowth: string;
+  mixAuthority: string;
+  mixConversion: string;
+  mixPersonal: string;
 }
 
 function toForm(b: Pick<BrandProfile, "name" | "positioning" | "audience" | "voice_profile" | "brand_guidelines">): FormState {
@@ -61,6 +65,10 @@ function toForm(b: Pick<BrandProfile, "name" | "positioning" | "audience" | "voi
     messagePillars: join(b.brand_guidelines.messaging.message_pillars),
     methodology: join(b.brand_guidelines.messaging.methodology),
     messagingStructure: join(b.brand_guidelines.messaging.messaging_structure),
+    mixGrowth: String(b.brand_guidelines.content_mix.growth),
+    mixAuthority: String(b.brand_guidelines.content_mix.authority),
+    mixConversion: String(b.brand_guidelines.content_mix.conversion),
+    mixPersonal: String(b.brand_guidelines.content_mix.personal),
   };
 }
 
@@ -92,6 +100,12 @@ function toPayload(f: FormState) {
       colors,
       fonts: { display: f.displayFont || undefined, body: f.bodyFont || undefined, mono: f.monoFont || undefined },
       content_pillars: lines(f.pillars),
+      content_mix: {
+        growth: Number(f.mixGrowth),
+        authority: Number(f.mixAuthority),
+        conversion: Number(f.mixConversion),
+        personal: Number(f.mixPersonal),
+      },
       messaging: {
         brand_line: f.brandLine,
         promise: f.promise,
@@ -118,6 +132,7 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
   const [form, setForm] = useState(() => toForm(brand));
   const [state, setState] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string }>({ kind: "idle" });
   const unconfigured = !brand.positioning && brand.voice_profile.principles.length === 0;
+  const mixTotal = [form.mixGrowth, form.mixAuthority, form.mixConversion, form.mixPersonal].reduce((t, v) => t + (Number(v) || 0), 0);
 
   function loadDefaults() {
     if (!unconfigured && !window.confirm("Replace everything in this form with the brand defaults? Nothing is saved until you click Save.")) {
@@ -174,6 +189,22 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
       </fieldset>
 
       <fieldset className="card space-y-4">
+        <legend className="font-display px-1 text-2xl">Content mix</legend>
+        <p className="text-sm text-muted">
+          Target share of posts by type. The brief writer uses your recent approved briefs to keep the mix on target.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Field label="Growth %" hint="Get discovered"><input type="number" min={0} max={100} required {...bind("mixGrowth")} /></Field>
+          <Field label="Authority %" hint="Build trust"><input type="number" min={0} max={100} required {...bind("mixAuthority")} /></Field>
+          <Field label="Conversion %" hint="Win clients"><input type="number" min={0} max={100} required {...bind("mixConversion")} /></Field>
+          <Field label="Personal %" hint="Be remembered"><input type="number" min={0} max={100} required {...bind("mixPersonal")} /></Field>
+        </div>
+        <p className={`metric text-sm ${mixTotal === 100 ? "text-muted" : "text-red-600"}`} role="status">
+          Total: {mixTotal}%{mixTotal === 100 ? "" : " (must be 100%)"}
+        </p>
+      </fieldset>
+
+      <fieldset className="card space-y-4">
         <legend className="font-display px-1 text-2xl">Audience</legend>
         <Field label="Primary audience"><input {...bind("audiencePrimary")} /></Field>
         <Field label="Segments" hint="One per line"><textarea {...bind("segments", true)} /></Field>
@@ -203,7 +234,7 @@ export function BrandEditor({ brand }: { brand: BrandProfile }) {
       </fieldset>
 
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
-        <button type="submit" className="btn-primary" disabled={state.kind === "saving"}>
+        <button type="submit" className="btn-primary" disabled={state.kind === "saving" || mixTotal !== 100}>
           {state.kind === "saving" ? "Saving…" : "Save Brand DNA"}
         </button>
         {state.msg && (

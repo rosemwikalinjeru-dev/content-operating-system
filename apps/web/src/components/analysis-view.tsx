@@ -83,6 +83,7 @@ export function AnalysisView({ analysis, analyzedAt }: { analysis: IdeaAnalysis;
           {analysis.suggested_angles.map((a) => (
             <article key={a.angle} className="card space-y-2">
               <div className="flex flex-wrap gap-2">
+                {a.funnel_stage && <span className="chip border-[var(--accent)] text-[var(--accent)]">{a.funnel_stage}</span>}
                 {a.hook_pattern && <span className="chip">{label(a.hook_pattern)}</span>}
                 {a.structure && <span className="chip">{label(a.structure)}</span>}
               </div>

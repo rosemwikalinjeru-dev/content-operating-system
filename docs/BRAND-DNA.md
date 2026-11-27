@@ -73,6 +73,38 @@ intelligence) is more executive than the posts. Resolution: use it where natural
 into social content. The interview story's freelance call to action conflicts with v1.0
 positioning and is excluded as a pattern.
 
+## Content strategy (owner, 2026-11-27)
+
+### Post rules (applied by every writing agent; checked in Phase 4)
+
+1. **One point per post.** A second point belongs in another post. Briefs state it as `single_point`.
+2. **A strong hook.** The first line earns the second.
+3. **Storytelling with intention.** Every story leads to the single point. Never an update.
+4. **The cover test.** With name and photo hidden, readers still know it is Rose. Briefs state what
+   makes each post pass it (`cover_test`); the Phase 4 editorial review scores it.
+
+### Content types and target mix
+
+The owner supplied three frameworks that disagree (60/30/10 upper/mid/lower funnel; a
+top/mid/bottom funnel of challenges → deep-dives → demos; and 40/30/20/10
+growth/authority/conversion/personal). They are third-party opinions, not measured results.
+ContentOS uses the four-type model because it is the only one with both conversion and
+personal posts, and merges the other two into its descriptions:
+
+| Type | Default | Covers |
+|---|---|---|
+| growth | 40% | Hot takes, industry challenges, market trends, bold observations |
+| authority | 30% | Frameworks, solving one specific problem, teardowns, trend breakdowns, real case studies |
+| conversion | 20% | Offers, demos, before/after scenarios (labelled unless real), one clear call to action |
+| personal | 10% | Mistakes, turning points, behind the scenes, life moments that taught something about the industry |
+
+The mix is editable in Settings (must total 100%). Each brief chooses a type; the Strategist sees
+the last 20 approved briefs' types and leans toward whichever is under target.
+
+**Evidence constraint:** conversion content in these frameworks relies on client results and
+testimonials. Until real outcomes exist, conversion posts use demos, teardowns and offers, and
+hypothetical before/after scenarios are labelled as such.
+
 ## Open items (owner decisions)
 
 - Audience segments: v1.0 does not name industries, so the segments list is empty. Add any the owner

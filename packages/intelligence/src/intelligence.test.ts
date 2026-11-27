@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { IdeaAnalysis, IdeaAnalysisOutput, MasterBrief, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
+import { IdeaAnalysis, IdeaAnalysisOutput, MasterBrief, MasterBriefOutput, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
 import { describe, expect, it } from "vitest";
-import { buildBriefRequest, buildIdeaAnalysisRequest, finaliseBrief, IDEA_ANALYST, STRATEGIST } from "./agents";
+import { buildBriefRequest, buildIdeaAnalysisRequest, describeMix, finaliseBrief, IDEA_ANALYST, STRATEGIST } from "./agents";
 import { asData, composeSystem, GLOBAL_RULES, renderBrandDna, templateHash } from "./prompts";
 import { VOICE_SAMPLES } from "./voice-samples";
 
@@ -75,7 +75,7 @@ describe("agents", () => {
     expect(IdeaAnalysis.safeParse({ ...base, suggested_angles: [v1Angle] }).success).toBe(true);
     const v2Angle = {
       ...v1Angle, specific_moment: "Friday 6pm call", hook_pattern: "specific_scenario", sample_hook: "They called at 6pm.",
-      structure: "story_to_lesson", needs_from_owner: null,
+      structure: "story_to_lesson", funnel_stage: "personal", needs_from_owner: null,
     };
     expect(IdeaAnalysisOutput.safeParse({ ...base, suggested_angles: [v2Angle] }).success).toBe(true);
   });
@@ -83,8 +83,10 @@ describe("agents", () => {
   it("gives both writing agents the craft rules", () => {
     expect(IDEA_ANALYST.text).toContain("Hook and delivery craft");
     expect(STRATEGIST.text).toContain("Hook and delivery craft");
-    expect(IDEA_ANALYST.version).toBe(2);
-    expect(STRATEGIST.version).toBe(2);
+    expect(IDEA_ANALYST.version).toBe(3);
+    expect(STRATEGIST.version).toBe(3);
+    expect(STRATEGIST.text).toContain("cover test");
+    expect(STRATEGIST.text).toContain("One point per post");
   });
 
   it("brief includes analysis, formats and owner guidance", () => {
@@ -101,7 +103,7 @@ describe("agents", () => {
     };
     const req = buildBriefRequest({ brand, examples, related }, { idea, analysis, formats: ["linkedin"], guidance: "Focus on salons" });
     expect(req.task).toBe("master_brief");
-    expect(req.schema).toBe(MasterBrief);
+    expect(req.schema).toBe(MasterBriefOutput);
     const content = req.messages[0]!.content;
     expect(content).toContain('"core_argument": "c"');
     expect(content).toContain("Requested formats: linkedin");
@@ -109,8 +111,28 @@ describe("agents", () => {
   });
 
   it("finaliseBrief forces the requested formats", () => {
-    const brief = { selected_formats: ["carousel", "short_video"] } as unknown as MasterBrief;
+    const brief = { selected_formats: ["carousel", "short_video"] } as unknown as MasterBriefOutput;
     expect(finaliseBrief(brief, ["linkedin"]).selected_formats).toEqual(["linkedin"]);
+  });
+});
+
+describe("content mix", () => {
+  it("compares recent briefs with the target mix", () => {
+    const note = describeMix({ growth: 40, authority: 30, conversion: 20, personal: 10 }, ["growth", "growth", "authority", "personal"]);
+    expect(note).toContain("growth: target 40%, recent 50% (2 of 4)");
+    expect(note).toContain("conversion: target 20%, recent 0% (0 of 4)");
+    expect(describeMix({ growth: 40, authority: 30, conversion: 20, personal: 10 }, [])).toContain("no data");
+  });
+
+  it("old briefs without content type still display", () => {
+    const old = {
+      idea: "i", audience: "a", objective: "authority", content_pillar: "p", core_argument: "c", position: "p",
+      problem: "1", why_it_matters: "2", root_cause: "3", response: "4", technology_role: "none", success_measure: "6",
+      supporting_points: [], evidence: [], story_angle: "s", hooks: [], desired_action: "d", selected_formats: ["linkedin"],
+      voice_constraints: [], open_questions: [],
+    };
+    expect(MasterBrief.safeParse(old).success).toBe(true);
+    expect(MasterBriefOutput.safeParse(old).success).toBe(false);
   });
 });
 

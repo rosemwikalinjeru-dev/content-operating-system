@@ -36,6 +36,25 @@ export const POST_STRUCTURES = [
 export const PostStructure = z.enum(POST_STRUCTURES);
 export type PostStructure = z.infer<typeof PostStructure>;
 
+/**
+ * Content types (funnel stages). Merged from the owner's frameworks, 2026-11-27.
+ * Descriptions are given to the agents; the target mix lives in Brand DNA (content_mix).
+ */
+export const FUNNEL_STAGES = ["growth", "authority", "conversion", "personal"] as const;
+export const FunnelStage = z.enum(FUNNEL_STAGES);
+export type FunnelStage = z.infer<typeof FunnelStage>;
+
+export const FUNNEL_STAGE_GUIDE: Record<FunnelStage, string> = {
+  growth:
+    "Gets you discovered. Hot takes, industry challenges, market trends, bold observations. Broad enough to attract, sharp enough to stand out.",
+  authority:
+    "Builds trust. Frameworks, how to solve one specific problem, teardowns, trend breakdowns, case studies (real ones only).",
+  conversion:
+    "Turns followers into clients. Offers, demos, before/after scenarios (labelled as scenarios unless real), one clear call to action. Never invented results.",
+  personal:
+    "Makes them remember you. Mistakes, turning points, behind the scenes, a life moment that taught something about the industry. Only the owner's real experiences.",
+};
+
 export const Angle = z.object({
   angle: z.string().describe("The angle in one plain sentence."),
   specific_moment: z
@@ -46,6 +65,7 @@ export const Angle = z.object({
     .string()
     .describe("One or two short opening lines in the owner's voice. Use [square-bracket placeholders] for any number or detail only the owner knows."),
   structure: PostStructure,
+  funnel_stage: FunnelStage,
   why: z.string().describe("Why this angle is specific to this owner and would make a business owner stop."),
   needs_from_owner: z
     .string()
@@ -109,8 +129,13 @@ export type ContentFormat = z.infer<typeof ContentFormat>;
 
 export const BRIEF_OBJECTIVES = ["authority", "education", "engagement", "lead_generation", "community"] as const;
 
-export const MasterBrief = z.object({
+export const MasterBriefOutput = z.object({
   idea: z.string(),
+  funnel_stage: FunnelStage.describe("The content type this post serves."),
+  single_point: z.string().describe("The one point the post makes, in one sentence. Everything in the post serves it."),
+  cover_test: z
+    .string()
+    .describe("What makes this unmistakably the owner's post with their name hidden: worldview, recurring framing, phrasing, the kind of moment they notice."),
   audience: z.string(),
   objective: z.enum(BRIEF_OBJECTIVES),
   content_pillar: z.string().describe("One of the brand's content pillars."),
@@ -138,7 +163,15 @@ export const MasterBrief = z.object({
   voice_constraints: z.array(z.string()),
   open_questions: z.array(z.string()).describe("Anything the owner must confirm before production."),
 });
+
+/** Stored brief. Briefs written before Strategist v3 lack the newer fields, so they are optional. */
+export const MasterBrief = MasterBriefOutput.extend({
+  funnel_stage: FunnelStage.optional(),
+  single_point: z.string().optional(),
+  cover_test: z.string().optional(),
+});
 export type MasterBrief = z.infer<typeof MasterBrief>;
+export type MasterBriefOutput = z.infer<typeof MasterBriefOutput>;
 
 // ---------------------------------------------------------------------------
 // API inputs

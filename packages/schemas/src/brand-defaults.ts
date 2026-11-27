@@ -76,6 +76,11 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       "Reframe the problem in two short lines: \"That's not a reputation problem. It's an asking problem.\"",
       "End with one small action the reader can take today, often a question to ask their team.",
       "Use v1.0 preferred vocabulary where it fits naturally; never force it into social posts.",
+      // The owner's post rules (2026-11-27).
+      "Make one point per post. If a second point appears, it belongs in another post.",
+      "Earn the first line: a strong hook built on a specific moment or the reader's money.",
+      "Tell stories with intention: every story leads to the single point. Never post an update.",
+      "Pass the cover test: with the name and photo hidden, readers should still know it is Rose.",
     ],
     preferred_phrases: [
       "Business performance",
@@ -127,6 +132,7 @@ export const ROSE_NJERU_DEFAULTS: Required<BrandProfileCreate> = {
       linen_cream: "#F1EFE8",
     },
     fonts: { display: "Cormorant Garamond", body: "DM Sans", mono: "IBM Plex Mono" },
+    content_mix: { growth: 40, authority: 30, conversion: 20, personal: 10 },
     content_pillars: [
       "Business performance and intelligence",
       "Process and operational problems",

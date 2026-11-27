@@ -34,6 +34,16 @@ export const BrandGuidelines = z.object({
     })
     .default({}),
   content_pillars: z.array(ShortText).max(20).default([]),
+  /** Target share of posts per content type, in percent. Should add up to 100. */
+  content_mix: z
+    .object({
+      growth: z.number().int().min(0).max(100),
+      authority: z.number().int().min(0).max(100),
+      conversion: z.number().int().min(0).max(100),
+      personal: z.number().int().min(0).max(100),
+    })
+    .refine((m) => m.growth + m.authority + m.conversion + m.personal === 100, "Content mix must add up to 100%")
+    .default({ growth: 40, authority: 30, conversion: 20, personal: 10 }),
   messaging: z
     .object({
       /** Primary brand descriptor, e.g. "Business Intelligence. Strategic Transformation. Measurable Performance." */

@@ -21,7 +21,7 @@ import {
   type PromptTemplate,
 } from "@contentos/intelligence";
 import { ProviderError, type UsageController } from "@contentos/provider-gateway";
-import { ContentFormat, IdeaAnalysis } from "@contentos/schemas";
+import { ContentFormat, FunnelStage, IdeaAnalysis } from "@contentos/schemas";
 import { AppError, isAppError, type Logger } from "@contentos/shared";
 import { z } from "zod";
 
@@ -180,6 +180,9 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
   const examples = await svc.loadVoiceExamples(deps.db, userId, brand.id);
   const related = await svc.searchKnowledge(deps.db, userId, brand.id, `${idea.title} ${idea.raw_input}`);
   const templateId = await promptTemplateId(deps.db, userId, STRATEGIST, "Turn an idea into a master brief");
+  const recentStages = (await svc.recentFunnelStages(deps.db, userId)).filter(
+    (s): s is FunnelStage => FunnelStage.safeParse(s).success,
+  );
 
   const inputHash = stableHash({
     idea: [idea.title, idea.raw_input],
@@ -189,12 +192,16 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
     related: related.map((k) => k.id),
     formats,
     guidance: input.data.guidance ?? null,
+    recentStages,
     template: templateHash(STRATEGIST),
   });
 
   await svc.updateJob(deps.db, job, { progress: 40, current_step: "writing_brief" });
   await runStep(deps, job, opts, { name: "brief", position: 1, inputHash }, async (stepId) => {
-    const request = buildBriefRequest({ brand, examples, related }, { idea, analysis, formats, guidance: input.data.guidance });
+    const request = buildBriefRequest(
+      { brand, examples, related },
+      { idea, analysis, formats, guidance: input.data.guidance, recentStages },
+    );
     await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task)) });
     const result = await deps.controller.generate(
       request,

@@ -317,6 +317,22 @@ export async function insertBrief(
   return data as { id: string; version: number };
 }
 
+/** Content types of the user's most recently approved briefs, newest first. */
+export async function recentFunnelStages(db: ServiceClient, userId: string, limit = 20): Promise<string[]> {
+  const { data, error } = await db
+    .from("content_briefs")
+    .select("brief, approved_at")
+    .eq("user_id", userId)
+    .in("approval_status", ["approved", "superseded"])
+    .not("approved_at", "is", null)
+    .order("approved_at", { ascending: false })
+    .limit(limit);
+  if (error) throw fromDatabaseError(error);
+  return (data as { brief: { funnel_stage?: unknown } }[])
+    .map((r) => r.brief?.funnel_stage)
+    .filter((s): s is string => typeof s === "string");
+}
+
 // ---------------------------------------------------------------------------
 // Prompt templates and usage ledger
 // ---------------------------------------------------------------------------

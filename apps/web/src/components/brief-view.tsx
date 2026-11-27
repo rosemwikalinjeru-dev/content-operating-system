@@ -30,9 +30,10 @@ export function BriefView({ brief }: { brief: MasterBrief }) {
   return (
     <div className="space-y-4">
       <div className="card space-y-3">
-        <p className="text-xs uppercase tracking-wide text-muted">Core argument</p>
-        <p className="font-display text-2xl">{brief.core_argument}</p>
+        <p className="text-xs uppercase tracking-wide text-muted">{brief.single_point ? "The one point" : "Core argument"}</p>
+        <p className="font-display text-2xl">{brief.single_point ?? brief.core_argument}</p>
         <div className="flex flex-wrap gap-2">
+          {brief.funnel_stage && <span className="chip border-[var(--accent)] text-[var(--accent)]">{brief.funnel_stage}</span>}
           <span className="chip">{brief.objective.replace("_", " ")}</span>
           <span className="chip">{brief.content_pillar}</span>
           {brief.selected_formats.map((f) => (
@@ -67,6 +68,8 @@ export function BriefView({ brief }: { brief: MasterBrief }) {
 
       <div className="card">
         <dl className="space-y-3">
+          {brief.single_point && <Row label="Core argument">{brief.core_argument}</Row>}
+          {brief.cover_test && <Row label="Cover test">{brief.cover_test}</Row>}
           <Row label="Audience">{brief.audience}</Row>
           <Row label="Position">{brief.position}</Row>
           <Row label="Story angle">{brief.story_angle}</Row>

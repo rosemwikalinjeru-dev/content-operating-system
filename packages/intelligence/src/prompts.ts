@@ -86,7 +86,10 @@ Messaging structure (follow in order):
 ${list(m.messaging_structure)}
 
 ## Content pillars
-${list(g.content_pillars)}`;
+${list(g.content_pillars)}
+
+## Target content mix
+Growth ${g.content_mix.growth}% · Authority ${g.content_mix.authority}% · Conversion ${g.content_mix.conversion}% · Personal ${g.content_mix.personal}%`;
 }
 
 /** The owner's real writing, shown as voice reference (not content to copy). */
