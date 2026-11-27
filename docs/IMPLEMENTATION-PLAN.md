@@ -115,6 +115,18 @@ revise one paragraph → approve → export, with every call's cost visible on t
   via scene JSON → Remotion, MP4 + SRT export, resumable steps.
 - **Phase 7:** calendar, publishing records, metric snapshots, cost dashboard.
 
+## 5A. Reference-repository adoption by phase (added 2026-11-27)
+
+- **Phase 2:** ScrapeCreators skills adapted (outliers, comment mining, competitor/creator
+  teardowns, transcripts, trends). First task: live-verify LinkedIn creator coverage.
+  Agent-Reach optional for Reddit/YouTube/web.
+- **Phases 3–4:** from the LangChain social-media-agent — learned rules from the owner's edits
+  (proposed rules require approval before use), URL → post repurposing, verify-before-generate.
+- **Phase 6:** AI Video Factory scene/style-pack approach (anime styles), Shorts generator local
+  mode, Kokoro voice, FLUX.2 Klein 4B frames.
+
+See RECONNAISSANCE §2A for the full map.
+
 ## 6. Risks
 
 | Risk | Mitigation |

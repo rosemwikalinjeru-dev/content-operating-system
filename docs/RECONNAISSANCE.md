@@ -101,6 +101,87 @@ Modules: `downloader`, `transcriber`, `highlights`, `clipper`, `pipeline`, plus 
   hosted API behind `ImageProvider`. Pin the provider-side model ID so a non-commercial
   variant is never selected by accident.
 
+### 2.7 LangChain social-media-agent (inspected 2026-11-27)
+
+TypeScript, LangGraph, MIT. Takes a URL → generates LinkedIn/X posts and threads, with a
+human-in-the-loop interrupt to accept, edit or reject; optional Slack/GitHub ingestion, image
+selection, and posting via Arcade.
+
+Worth adapting (re-implemented on our stack, not imported):
+
+- **Reflection → learned rules.** After the user edits a draft, a prompt compares original vs
+  revised and decides whether to create a general rule ("no emojis", "shorter hooks"), then merges
+  it into a ruleset applied to future posts. This is exactly the "learn from approved edits" loop
+  planned for ContentOS; adopt it in Phase 3–4 with rules stored per brand and shown for approval.
+- **URL → post repurposing** (`repurposer`, `ingest-data`): content ingestion pattern for
+  Workflow D-text (article/URL → posts).
+- **Verify nodes** (`verify-links`, `verify-tweet`): check a source is relevant before generating.
+- **Condense / thread generation** prompts as references for X thread writing.
+
+Not adopted: LangGraph server + LangSmith (second orchestrator alongside Trigger.dev), Arcade
+auth and auto-posting (publishing stays manual by design), FireCrawl (extra paid scraper).
+
+### 2.8 short-video-factory (YILS-LIN)
+
+Electron desktop app for batch product/marketing short videos. **AGPL-3.0.** Not integrated and
+not closely re-implemented. Using it as a separate desktop tool is fine; copying code is not.
+
+### 2.9 Open-Generative-AI
+
+Next.js/Electron front end over the paid MuAPI service (600+ models), marketed as "no content
+filters". MIT app code. Reference only for provider/model catalogue ideas; not integrated —
+it routes through a third-party reseller and its positioning conflicts with brand trust rules.
+
+### 2.10 Open-LLM-VTuber
+
+Python, MIT, but bundled Live2D sample models carry the Live2D Free Material License: collaboration
+characters are non-commercial; commercial use is limited to small-scale enterprises (< ¥10M sales).
+Deferred. If an avatar is wanted later, commission an original Live2D model.
+
+### 2.11 MiniMax-H3-Image
+
+MiniMax-H3-Image Community License (released 2026-11-10). Restrictions:
+- **Excluded territories: EU, UK, South Korea, USA.** Use of the model *or its outputs* outside the
+  applicable territory is not licensed. Kenya is inside, but published content reaches US/EU/UK
+  audiences, so publishing outputs is a real legal risk.
+- Commercial products must display "MiniMax-H3-Image" in the UI.
+- Outputs may not be used to improve any other AI model.
+Decision: **do not use for published content** without legal review.
+
+### 2.12 MiniMax-H3-Tiny (fuyi25)
+
+Unofficial pruned/distilled derivative of the MiniMax H3 reference-to-video model; 14–17B
+parameters, needs a large GPU and the official H3 checkpoint. Weights fall under the MiniMax H3
+Community License (same territory restrictions). Code Apache-2.0. Deferred.
+
+### 2.13 ScrapeCreators — LinkedIn coverage gap
+
+The API lists a LinkedIn **company** posts feed and single-post lookup, and a person **profile**
+lookup, but no person posts feed. Competitor tracking of individual LinkedIn creators may be
+limited; TikTok, Instagram, YouTube, X, Threads and Facebook have full feeds. Verify with a live
+call at the start of Phase 2 before promising LinkedIn creator benchmarks.
+
+## 2A. Integration map
+
+| Repository | Where it lands | How |
+|---|---|---|
+| Social Media Research Skills | Phase 2 research engine | Adapt the 13 skill methodologies (outliers vs baseline, comment mining, competitor and creator teardowns, transcript intelligence, trends) into `skills/` + typed ScrapeCreators client |
+| LangChain social-media-agent | Phases 3–4 | Learned rules from edits, URL repurposing, verify-before-generate, accept/edit/reject flow |
+| Agent-Reach | Phase 2 (optional) | No-login channels only: Reddit, YouTube, web — audience questions and objections |
+| AI Video Factory | Phase 6 | Scene planning, style packs (including anime/illustrated styles), approvals, cost ledger, Remotion composition |
+| AI YouTube Shorts Generator | Phase 6 | Local mode: faster-whisper, chunked highlight detection, OpenCV vertical crop |
+| Kokoro | Phase 6 | Voiceover sidecar for all videos, including anime-style YouTube videos |
+| FLUX.2 Klein 4B | Phases 5–6 | Image provider (scenes, anime-style frames, thumbnails) |
+| short-video-factory | — | AGPL; standalone tool only |
+| Open-Generative-AI | — | Reference only |
+| Open-LLM-VTuber | Deferred | Live2D licence limits |
+| MiniMax-H3-Image | Not for published content | Territory licence |
+| MiniMax-H3-Tiny | Deferred | Territory licence; GPU cost |
+
+**Anime videos** are a combination, not one repo: Kokoro supplies the voice; FLUX.2 Klein 4B (or a
+hosted image/video API) supplies consistent character frames; AI Video Factory's style-pack and
+scene approach plus Remotion supplies motion and assembly.
+
 ## 3. Licensing issues not in the original spec
 
 1. **Remotion is not MIT.** It uses the Remotion License: free for individuals and companies
