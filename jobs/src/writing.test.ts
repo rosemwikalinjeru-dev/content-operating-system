@@ -17,6 +17,7 @@ const svc = vi.hoisted(() => ({
   sumSpend: vi.fn(),
   loadBrief: vi.fn(),
   ensureAsset: vi.fn(),
+  findAsset: vi.fn(),
   versionByInputHash: vi.fn(),
   addVersion: vi.fn(),
   markProjectInProduction: vi.fn(),
@@ -97,6 +98,7 @@ beforeEach(() => {
     reusable: false,
   }));
   svc.ensureAsset.mockImplementation(async (_db: unknown, _u: string, i: { format: string }) => `asset-${i.format}`);
+  svc.findAsset.mockImplementation(async (_db: unknown, _u: string, i: { format: string }) => `asset-${i.format}`);
   svc.versionByInputHash.mockResolvedValue(null);
   svc.addVersion.mockResolvedValue({ id: "v-1", version: 1 });
   svc.sumSpend.mockResolvedValue(0.04);
@@ -147,6 +149,8 @@ describe("write_content pipeline", () => {
     await expect(runWriteContent(deps(c), "job-1", { finalAttempt: false })).rejects.toBeInstanceOf(NonRetryableJobError);
     expect(svc.addVersion).toHaveBeenCalledTimes(1);
     expect(svc.finishStep).toHaveBeenCalledWith(expect.anything(), expect.anything(), "step-write_linkedin", expect.objectContaining({ status: "completed" }));
+    // The failed format never got an asset row, so no empty tab appears.
+    expect(svc.ensureAsset.mock.calls.map((c) => c[2].format)).toEqual(["post"]);
   });
 });
 

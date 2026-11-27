@@ -93,17 +93,11 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
         force: input.data.force ? job.id : null,
       });
       const written = await runStep(deps, job, opts, { name: `write_${format}`, position: i + 1, inputHash }, async (stepId) => {
-        const assetId = await svc.ensureAsset(deps.db, userId, {
-          projectId: project.id,
-          briefId: briefRow.id,
-          platform: asset.platform,
-          format: asset.format,
-          title: `${asset.label}: ${project.title}`.slice(0, 200),
-        });
         // Do not regenerate unchanged assets.
-        const existing = await svc.versionByInputHash(deps.db, userId, assetId, inputHash);
-        if (existing) {
-          return { output: { asset_id: assetId, version: existing.version, version_id: existing.id, reused: true }, cost: 0 };
+        const found = await svc.findAsset(deps.db, userId, { projectId: project.id, platform: asset.platform, format: asset.format });
+        const existing = found ? await svc.versionByInputHash(deps.db, userId, found, inputHash) : null;
+        if (found && existing) {
+          return { output: { asset_id: found, version: existing.version, version_id: existing.id, reused: true }, cost: 0 };
         }
         const templateId = await promptTemplateId(deps.db, userId, writer, `Write a ${asset.label}`);
         const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules, avoid });
@@ -114,6 +108,14 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
           settings.model_routes.format_writing,
         );
         const body = toDraftBody(format, result.output);
+        // The tab appears only once there is a draft to show: create the asset after a successful write.
+        const assetId = await svc.ensureAsset(deps.db, userId, {
+          projectId: project.id,
+          briefId: briefRow.id,
+          platform: asset.platform,
+          format: asset.format,
+          title: `${asset.label}: ${project.title}`.slice(0, 200),
+        });
         const saved = await svc.addVersion(deps.db, {
           assetId,
           body,

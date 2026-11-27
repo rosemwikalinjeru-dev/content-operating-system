@@ -14,7 +14,8 @@ import type { UserClient } from "./client";
 const VERSION_COLUMNS = "id, version, status, created_by, model, change_note, revised_section, parent_version, body, created_at";
 
 export async function listProjectAssets(db: UserClient, projectId: string): Promise<ContentAssetView[]> {
-  const assets = await listProjectAssetsRaw(db, projectId);
+  // A format whose first write failed has no versions; hide it so it can be added again.
+  const assets = (await listProjectAssetsRaw(db, projectId)).filter((a) => a.versions.length > 0);
   const versionIds = assets.flatMap((a) => a.versions.map((v) => v.id));
   const reviews = await latestReviews(db, versionIds);
   for (const a of assets) for (const v of a.versions) v.review = reviews.get(v.id) ?? null;
@@ -125,19 +126,24 @@ export async function approvedBriefId(db: UserClient, projectId: string): Promis
   return data as { id: string; version: number } | null;
 }
 
-/** The newest queued or running writing job for a project (to resume its progress view). */
+/**
+ * The newest writing job to show on the project page: one still running, or one that failed in the
+ * last 24 hours (so its reason stays visible after a refresh).
+ */
 export async function activeWritingJob(db: UserClient, projectId: string): Promise<{ id: string; job_type: string } | null> {
   const { data, error } = await db
     .from("production_jobs")
-    .select("id, job_type")
+    .select("id, job_type, status, created_at")
     .eq("project_id", projectId)
-    .in("job_type", ["write_content", "revise_section"])
-    .in("status", ["queued", "running"])
+    .in("job_type", ["write_content", "revise_section", "review_version"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw fromDatabaseError(error);
-  return data as { id: string; job_type: string } | null;
+  const row = data as { id: string; job_type: string; status: string; created_at: string } | null;
+  if (!row) return null;
+  const recent = Date.now() - new Date(row.created_at).getTime() < 86_400_000;
+  return row.status === "queued" || row.status === "running" || (row.status === "failed" && recent) ? { id: row.id, job_type: row.job_type } : null;
 }
 
 /** The latest review of each version, with its suggestions and the owner's gate overrides. */

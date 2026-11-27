@@ -28,7 +28,9 @@ interface Props {
 export function WritingStudio({ projectId, hasApprovedBrief, assets, activeJob }: Props) {
   const router = useRouter();
   const [job, setJob] = useState<{ id: string; label: string } | null>(
-    activeJob ? { id: activeJob.id, label: activeJob.job_type === "write_content" ? "Writing formats" : "Revising section" } : null,
+    activeJob
+      ? { id: activeJob.id, label: activeJob.job_type === "write_content" ? "Writing formats" : activeJob.job_type === "review_version" ? "Reviewing the draft" : "Revising section" }
+      : null,
   );
   const [tab, setTab] = useState(assets[0]?.id ?? null);
   const [error, setError] = useState<string | null>(null);

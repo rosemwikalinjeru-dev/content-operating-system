@@ -25,6 +25,21 @@ export async function loadBrief(db: ServiceClient, userId: string, briefId: stri
   return data as ApprovedBriefRecord;
 }
 
+/** The live asset for a project and format, if it exists (never creates one). */
+export async function findAsset(db: ServiceClient, userId: string, input: { projectId: string; platform: string; format: string }): Promise<string | null> {
+  const { data, error } = await db
+    .from("content_assets")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("project_id", input.projectId)
+    .eq("platform", input.platform)
+    .eq("format", input.format)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) throw fromDatabaseError(error);
+  return (data as { id: string } | null)?.id ?? null;
+}
+
 /** The live asset for a project and format, created on first use. */
 export async function ensureAsset(
   db: ServiceClient,
