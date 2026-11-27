@@ -15,7 +15,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const { db } = await requireSession();
   const report = await getResearchReport(db, id).catch(() => null);
   if (!report) notFound();
-  const { stats, outliers, gaps, notes } = report.findings;
+  const { stats, outliers, gaps, notes, rejected_ideas: rejected = [] } = report.findings;
   const byId = new Map(outliers.map((o) => [o.source_id, o]));
 
   return (
@@ -50,6 +50,19 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             ))}
           </ul>
         </div>
+      )}
+
+      {rejected.length > 0 && (
+        <details className="card">
+          <summary className="cursor-pointer font-semibold">{rejected.length} idea(s) kept out of the Inbox as generic</summary>
+          <ul className="mt-3 space-y-2 text-sm">
+            {rejected.map((r, i) => (
+              <li key={i}>
+                <span className="font-medium">{r.title}</span> <span className="text-muted">({r.gap_topic}) — {r.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       <div className="space-y-3">

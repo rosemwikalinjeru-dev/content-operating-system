@@ -32,7 +32,14 @@ export const GapIdeas = z.object({
     z.object({
       gap_topic: z.string().describe("The gap topic this idea addresses, exactly as given."),
       title: z.string().describe("A short working title in the owner's plain voice."),
-      raw_input: z.string().describe("The idea as the owner would jot it down: the problem, the specific moment, and her angle. No invented numbers or stories."),
+      specific_moment: z
+        .string()
+        .describe("One observable moment in a named kind of service business where the problem shows up (who, what they are doing, what goes wrong), drawn from the evidence's language."),
+      non_obvious_claim: z
+        .string()
+        .describe("The owner's position in one sentence: a hidden cause, a cost people miss, or a common belief it contradicts. Not a slogan."),
+      generic_version: z.string().describe("The bland version of this idea any automation agency would post — the thing this idea must not become."),
+      raw_input: z.string().describe("The idea as the owner would jot it down: the moment, the claim, why it matters. No invented numbers or stories; [placeholders] where her own example is needed."),
       angle: z.string(),
       funnel_stage: FunnelStage,
       why_gap: z.string().describe("Why this is a gap: what the audience is doing or asking, and what competitors are not covering. Cite only the evidence given."),
@@ -41,6 +48,18 @@ export const GapIdeas = z.object({
   ),
 });
 export type GapIdeas = z.infer<typeof GapIdeas>;
+
+/** Independent genericity screen, using the Idea Analyst's test, before ideas reach the Inbox. */
+export const IdeaScreen = z.object({
+  results: z.array(
+    z.object({
+      ref: z.string(),
+      is_generic: z.boolean(),
+      reason: z.string().describe("One sentence: what makes it specific to the owner, or which generic idea it collapses into."),
+    }),
+  ),
+});
+export type IdeaScreen = z.infer<typeof IdeaScreen>;
 
 // ---------------------------------------------------------------------------
 // API inputs
@@ -176,6 +195,8 @@ export interface ResearchFindings {
     evidence?: Array<{ source_id: string; platform: string; url: string | null; excerpt: string; lift: number | null }>;
   }>;
   idea_ids: string[];
+  /** Candidate ideas the genericity screen rejected (kept out of the Inbox). Older reports lack it. */
+  rejected_ideas?: Array<{ title: string; gap_topic: string; reason: string }>;
   notes: string[];
 }
 

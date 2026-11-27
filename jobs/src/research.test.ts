@@ -95,17 +95,43 @@ function controller() {
           durationMs: 1,
         };
       }
+      if (req.task === "idea_screening") {
+        const refs = [...req.messages[0]!.content.matchAll(/\[ref: (i\d+)\]/g)].map((m) => m[1]!);
+        return {
+          output: { results: refs.map((ref) => ({ ref, is_generic: ref !== "i1", reason: ref === "i1" ? "Specific moment." : "Generic." })) },
+          provider: "anthropic",
+          model: "claude-sonnet-5-5",
+          usage,
+          costUsd: 0.005,
+          durationMs: 1,
+        };
+      }
       return {
         output: {
           ideas: [
             {
               gap_topic: "founder dependency",
               title: "The business that stops when the owner rests",
+              specific_moment: "A salon owner answers booking questions from a beach on day two of a holiday.",
+              non_obvious_claim: "Founder dependency is a routing problem: every decision path ends at one phone.",
+              generic_version: "Build systems so your business runs without you.",
               raw_input: "Owners say the business stops when they take a day off. [my example]",
               angle: "Dependency is a process gap, not a work ethic problem",
               funnel_stage: "authority",
               why_gap: "Asked often, rarely covered by tracked creators.",
               evidence_refs: ["e1", "e99"],
+            },
+            {
+              gap_topic: "founder dependency",
+              title: "Systems set you free",
+              specific_moment: "Businesses struggle.",
+              non_obvious_claim: "Work on the business, not in it.",
+              generic_version: "Same.",
+              raw_input: "Automate everything.",
+              angle: "generic",
+              funnel_stage: "growth",
+              why_gap: "n/a",
+              evidence_refs: ["e1"],
             },
           ],
         },
@@ -200,7 +226,7 @@ describe("research_sweep pipeline", () => {
 
     expect(client.search).toHaveBeenCalledWith("reddit", "business stops when I'm away");
     expect(svc.insertUsage).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ provider: "scrapecreators", units: 2, unit_type: "credit" }));
-    expect(c.generate.mock.calls.map((call) => call[0].task)).toEqual(["research_labeling", "gap_synthesis"]);
+    expect(c.generate.mock.calls.map((call) => call[0].task)).toEqual(["research_labeling", "gap_synthesis", "idea_screening"]);
 
     const report = svc.insertResearchReport.mock.calls[0]![2];
     expect(report.findings.outliers[0]).toMatchObject({ topic: "founder dependency", tier: "huge", baseline_kind: "author" });
@@ -208,11 +234,19 @@ describe("research_sweep pipeline", () => {
     expect(report.findings.notes.join(" ")).toMatch(/LinkedIn returned no posts for Creator/);
 
     const ideas = svc.insertResearchIdeas.mock.calls[0]![4];
+    // The generic second candidate is screened out and recorded on the report instead.
     expect(ideas).toHaveLength(1);
+    expect(ideas[0].title).toBe("The business that stops when the owner rests");
+    expect(ideas[0].raw_input).toContain("My claim: Founder dependency is a routing problem");
     // Only refs the pipeline issued become evidence; the invented e99 is dropped.
     expect(ideas[0].metadata.research.evidence).toHaveLength(1);
     expect(ideas[0].metadata.research.evidence[0]).toMatchObject({ source_id: "src-1", url: expect.stringContaining("/comments/1") });
-    expect(svc.updateReportFindings).toHaveBeenCalledWith(expect.anything(), USER, "report-1", expect.objectContaining({ idea_ids: ["idea-1"] }));
+    expect(svc.updateReportFindings).toHaveBeenCalledWith(
+      expect.anything(),
+      USER,
+      "report-1",
+      expect.objectContaining({ idea_ids: ["idea-1"], rejected_ideas: [{ title: "Systems set you free", gap_topic: "founder dependency", reason: "Generic." }] }),
+    );
     expect(svc.updateJob).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ status: "completed", actual_cost: 0.04 }));
   });
 
@@ -222,7 +256,7 @@ describe("research_sweep pipeline", () => {
     c.generate.mockClear();
     svc.insertResearchReport.mockClear();
     await runResearchSweep(deps(c), "job-1", { finalAttempt: false });
-    expect(c.generate.mock.calls.map((call) => call[0].task)).toEqual(["gap_synthesis"]);
+    expect(c.generate.mock.calls.map((call) => call[0].task)).toEqual(["gap_synthesis", "idea_screening"]);
   });
 
   it("stops without retry when the ScrapeCreators key is rejected", async () => {

@@ -103,7 +103,7 @@ Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
 
 ### `GET /api/v1/settings` · `PATCH /api/v1/settings`
 Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
-`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis? }`, each one of
+`budget_monthly_usd` (0–10000). `model_routes`: `{ idea_analysis?, master_brief?, research_labeling?, gap_synthesis?, idea_screening? }`, each one of
 `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` (defaults: Sonnet, except research labelling: Haiku).
 
 ### `GET /api/v1/usage`
@@ -122,11 +122,11 @@ All owner-only and RLS-scoped to the default brand.
 ### Tracked creators
 - `GET /api/v1/competitors` · `POST /api/v1/competitors` — `{ name, profile_url, relationship?, priority?, study_focus? }`; platform is derived from the URL.
 - `PATCH /api/v1/competitors/:id` — `{ enabled?, relationship?, priority?, study_focus? }` · `DELETE` (soft delete; evidence keeps its link).
-- `POST /api/v1/competitors/import-watchlist` — imports `docs/research/watchlist.json`; `{ imported, skipped, missing_urls }`.
+- `POST /api/v1/competitors/import-watchlist` — imports `docs/research/watchlist.json`; also fills placeholder study focus on existing creators (owner edits kept). `{ imported, updated, skipped, missing_urls }`.
 
 ### Sweeps and reports
 - `POST /api/v1/research/run` — `{ cluster_ids?, include_competitors? = true, max_queries? = 6 (1–10), max_credits? = 30 (5–100) }`. `202` job (`research_sweep`). Key: settings + hour.
-- `GET /api/v1/research/reports?limit=&cursor=` · `GET /api/v1/research/reports/:id` — report with `findings { stats, outliers[], gaps[], idea_ids[], notes[] }` and the ideas it created.
+- `GET /api/v1/research/reports?limit=&cursor=` · `GET /api/v1/research/reports/:id` — report with `findings { stats, outliers[], gaps[], idea_ids[], rejected_ideas[], notes[] }` and the ideas it created.
 - `POST /api/v1/research/sources/import` — `{ competitor_id, posts: [{ text, url?, author?, published_at?, likes?, comments?, shares? }] (≤50) }`. Stored as `provider: "manual"`; duplicates skipped. `{ imported, skipped }`.
 - `POST /api/v1/research/probe` — `{ platform, mode: search|feed, value }`. Spends 1 credit; returns `{ credits, parsed_items, first_item_fields, shape }` (key paths and types only, never values).
 - `GET /api/v1/research/schedule` · `PUT /api/v1/research/schedule` — `{ enabled }`. Enabling records `approved_at`.

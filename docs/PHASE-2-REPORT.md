@@ -68,6 +68,26 @@ and the research migration on the live project).
   - database research tests (5), covering RLS, the query constraints and cross-tenant links.
 - Typecheck, lint and `next build` are clean.
 
+## 4A. Exit check, first run (2026-11-27)
+
+The owner analysed three research ideas: one passed and two were flagged as generic. The topic labels
+are deliberately broad (for example "founder dependency"), and synthesiser v1 stayed at that level.
+Changes:
+
+- **Gap Synthesiser v2.** For each idea it must now give:
+  - a `specific_moment` drawn from the evidence wording, in a named kind of service business;
+  - a `non_obvious_claim` (a hidden cause, a missed cost, or a contradiction of common advice);
+  - the `generic_version` to avoid, with a list of banned stock lines.
+
+  It writes up to two candidates per gap and skips gaps where only the generic version exists.
+- **Independent idea screen** (new task `idea_screening`, Sonnet 5.5 at low effort; can be changed
+  in Settings). It applies the Idea Analyst's exact genericity test, and a test keeps the two
+  wordings identical. Generic or unscreened candidates never reach the Inbox. They are listed on
+  the report under "kept out of the Inbox as generic".
+- **Analyst context.** Ideas carry their moment, claim and generic counter-example in `raw_input`,
+  so the Idea Analyst sees the specific version.
+- The exit check is still open: it needs a new sweep with three or more screened ideas that pass the Idea Analyst.
+
 ## 5. Known limitations
 
 1. **ScrapeCreators field names are unverified.** The docs were unreachable from the build environment.
@@ -79,7 +99,7 @@ and the research migration on the live project).
    - A default sweep (about 16 requests, about 150 posts, 6 Haiku calls and 1 Sonnet call) should fit.
    - If it is cut off, the stale-job check marks it timed out and a re-run reuses the completed steps.
 5. **Starter audience-language terms are drafts.** The owner should edit them on the Keywords tab.
-6. **Missing watchlist URLs:** Nate Herk, Nick Saraev, Isabella Bedoya and Chris Donnelly are reported on import and not guessed.
+6. **Missing watchlist URLs:** Nick Saraev and Isabella Bedoya are reported on import and not guessed.
 
 ## 6. Owner exit check
 

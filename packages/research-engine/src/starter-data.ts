@@ -148,7 +148,7 @@ export const STARTER_KEYWORDS = {
 
 export const STARTER_WATCHLIST = {
   "source": "Owner-supplied list, 2026-11-27",
-  "note": "Profile URLs supplied by the owner on 2026-11-27 (tracking parameters removed). Still missing: Nate Herk, Nick Saraev, Isabella Bedoya, Chris Donnelly.",
+  "note": "Profile URLs supplied by the owner on 2026-11-27 (tracking parameters removed). Still missing: Nick Saraev, Isabella Bedoya.",
   "competitors": [
     {
       "name": "Nate Herk",
@@ -158,7 +158,7 @@ export const STARTER_WATCHLIST = {
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/nateherkelman/"
         }
       ]
     },
@@ -230,7 +230,7 @@ export const STARTER_WATCHLIST = {
       "platforms": [
         {
           "platform": "linkedin",
-          "profile_url": null
+          "profile_url": "https://www.linkedin.com/in/donnellychris/"
         }
       ]
     },
@@ -298,7 +298,7 @@ export const STARTER_WATCHLIST = {
       "name": "Lara Acosta",
       "relationship": "craft_benchmark",
       "priority": null,
-      "study_focus": "Added by owner 2026-11-27; study focus to confirm",
+      "study_focus": "Content strategy: content pillars, posting cadence, how posts move readers from attention to trust",
       "platforms": [
         {
           "platform": "linkedin",
@@ -308,9 +308,9 @@ export const STARTER_WATCHLIST = {
     },
     {
       "name": "Megan Lieu",
-      "relationship": "positioning_benchmark",
+      "relationship": "craft_benchmark",
       "priority": null,
-      "study_focus": "Added by owner 2026-11-27; relationship and study focus to confirm",
+      "study_focus": "Content strategy: content pillars, posting cadence, how posts move readers from attention to trust",
       "platforms": [
         {
           "platform": "linkedin",

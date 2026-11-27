@@ -30,8 +30,16 @@ export const DEFAULT_ROUTES: Record<TaskType, ModelRoute> = {
     provider: "anthropic",
     model: "claude-sonnet-5-5",
     effort: "medium",
-    maxTokens: 10_000,
-    expectedOutputTokens: 3_000,
+    maxTokens: 14_000,
+    expectedOutputTokens: 5_000,
+  },
+  // Independent genericity check on research ideas: short output, low effort.
+  idea_screening: {
+    provider: "anthropic",
+    model: "claude-sonnet-5-5",
+    effort: "low",
+    maxTokens: 4_000,
+    expectedOutputTokens: 800,
   },
   master_brief: {
     provider: "anthropic",

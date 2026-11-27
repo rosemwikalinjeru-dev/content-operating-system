@@ -12,7 +12,7 @@
  * Steps record input hashes, so a retried job does not re-collect or re-label.
  */
 import * as svc from "@contentos/database/service";
-import { buildGapIdeasRequest, buildLabelRequest, type ClusterInfo, type GapForSynthesis } from "@contentos/intelligence";
+import { buildGapIdeasRequest, buildIdeaScreenRequest, buildLabelRequest, type ClusterInfo, type GapForSynthesis } from "@contentos/intelligence";
 import {
   contentHash,
   scoreGaps,
@@ -429,7 +429,39 @@ async function sweep(deps: ResearchDeps, job: svc.JobRecord, run: ResearchRunReq
         limits,
         settings.model_routes.gap_synthesis,
       );
-      const ideas = result.output.ideas.slice(0, MAX_IDEAS).map((idea) => {
+      // Independent genericity screen (the Idea Analyst's test): generic candidates never reach the Inbox.
+      const candidates = result.output.ideas.filter((idea) => idea.title.trim() && idea.raw_input.trim());
+      let screenCost = 0;
+      let verdicts = new Map<number, { is_generic: boolean; reason: string }>();
+      if (candidates.length) {
+        const screen = await deps.controller.generate(
+          buildIdeaScreenRequest(
+            brand,
+            candidates.map((c, n) => ({ ref: `i${n + 1}`, title: c.title, specific_moment: c.specific_moment, non_obvious_claim: c.non_obvious_claim, raw_input: c.raw_input })),
+          ),
+          { userId, jobId: job.id, stepId },
+          limits,
+          settings.model_routes.idea_screening,
+        );
+        screenCost = screen.costUsd;
+        verdicts = new Map(
+          screen.output.results
+            .map((r) => [Number(r.ref.replace(/^i/, "")) - 1, { is_generic: r.is_generic, reason: r.reason }] as const)
+            .filter(([n]) => Number.isInteger(n) && n >= 0 && n < candidates.length),
+        );
+      }
+      // An idea the screen did not return a verdict for is treated as unscreened and kept out.
+      const passed = candidates.filter((_, n) => verdicts.get(n)?.is_generic === false);
+      const rejected = candidates
+        .map((c, n) => ({ c, v: verdicts.get(n) }))
+        .filter(({ v }) => !v || v.is_generic)
+        .map(({ c, v }) => ({ title: c.title, gap_topic: c.gap_topic, reason: v?.reason ?? "Not screened." }));
+      // At most one idea per gap first, then second candidates, up to MAX_IDEAS.
+      const seenGaps = new Set<string>();
+      const firsts = passed.filter((c) => !seenGaps.has(c.gap_topic) && seenGaps.add(c.gap_topic));
+      const chosen = [...firsts, ...passed.filter((c) => !firsts.includes(c))].slice(0, MAX_IDEAS);
+
+      const ideas = chosen.map((idea) => {
         const gap = top.find((g) => g.topic === idea.gap_topic) ?? top[0]!;
         const evidence = idea.evidence_refs
           .map((ref) => refToSource.get(ref))
@@ -443,9 +475,16 @@ async function sweep(deps: ResearchDeps, job: svc.JobRecord, run: ResearchRunReq
             lift: findings.outliers.find((o) => o.source_id === r.id)?.lift ?? null,
             is_question: r.labels?.is_question === true,
           }));
+        const verdict = verdicts.get(candidates.indexOf(idea));
         return {
           title: idea.title,
-          raw_input: `${idea.raw_input}\n\nWhy this is a gap: ${idea.why_gap}`,
+          raw_input: [
+            idea.raw_input,
+            `The moment: ${idea.specific_moment}`,
+            `My claim: ${idea.non_obvious_claim}`,
+            `Not this (the generic version): ${idea.generic_version}`,
+            `Why this is a gap: ${idea.why_gap}`,
+          ].join("\n\n"),
           tags: ["research", gap.cluster_id ? `cluster-${gap.cluster_id.toLowerCase()}` : "research-gap"],
           metadata: {
             research: {
@@ -453,16 +492,26 @@ async function sweep(deps: ResearchDeps, job: svc.JobRecord, run: ResearchRunReq
               gap: { topic: gap.topic, score: gap.score, competitor_coverage: gap.competitor_coverage, question_count: gap.question_count },
               angle: idea.angle,
               funnel_stage: idea.funnel_stage,
+              specific_moment: idea.specific_moment,
+              non_obvious_claim: idea.non_obvious_claim,
+              screen: { is_generic: false, reason: verdict?.reason ?? null },
               evidence,
               generated_by: result.model,
-              observed_vs_interpretation: "evidence = observed public posts; angle and why_gap = model interpretation",
+              observed_vs_interpretation: "evidence = observed public posts; moment, claim, angle and why_gap = model interpretation",
             },
           },
         };
       });
       const ideaIds = await svc.insertResearchIdeas(deps.db, userId, brandId, analysis.reportId, ideas);
-      await svc.updateReportFindings(deps.db, userId, analysis.reportId, { ...findings, idea_ids: ideaIds } as unknown as Record<string, unknown>);
-      return { output: { ideaIds }, cost: result.costUsd };
+      const notes = [...findings.notes];
+      if (rejected.length) notes.push(`${rejected.length} candidate idea(s) were kept out of the Inbox as generic.`);
+      await svc.updateReportFindings(deps.db, userId, analysis.reportId, {
+        ...findings,
+        idea_ids: ideaIds,
+        rejected_ideas: rejected,
+        notes,
+      } as unknown as Record<string, unknown>);
+      return { output: { ideaIds }, cost: result.costUsd + screenCost };
     },
   );
 

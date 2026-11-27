@@ -262,6 +262,7 @@ export const ModelRoutes = z.object({
   master_brief: ModelChoice.optional(),
   research_labeling: ModelChoice.optional(),
   gap_synthesis: ModelChoice.optional(),
+  idea_screening: ModelChoice.optional(),
 });
 export type ModelRoutes = z.infer<typeof ModelRoutes>;
 

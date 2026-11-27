@@ -43,10 +43,10 @@ export function CompetitorsManager({ competitors }: { competitors: CompetitorRow
           disabled={busy !== null}
           onClick={() =>
             act("import", async () => {
-              const r = await apiFetch<{ imported: number; skipped: number; missing_urls: string[] }>("/api/v1/competitors/import-watchlist", {
+              const r = await apiFetch<{ imported: number; updated: number; skipped: number; missing_urls: string[] }>("/api/v1/competitors/import-watchlist", {
                 method: "POST",
               });
-              return `Imported ${r.imported}, kept ${r.skipped}.${r.missing_urls.length ? ` Still need links for: ${r.missing_urls.join(", ")}.` : ""}`;
+              return `Imported ${r.imported}, updated ${r.updated}, kept ${r.skipped}.${r.missing_urls.length ? ` Still need links for: ${r.missing_urls.join(", ")}.` : ""}`;
             })
           }
         >

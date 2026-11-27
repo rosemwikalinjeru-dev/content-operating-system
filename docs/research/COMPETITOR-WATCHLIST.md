@@ -34,8 +34,11 @@ away from Brand Guidelines v1.0 (business owners, not automation builders).
 
 Priorities are the owner's research priorities, not a verified engagement ranking.
 
-**Missing:** profile URLs (the pasted list lost its links) and which other platforms each
-creator is active on. Both are to be confirmed before monitoring is configured.
+| 13 | Lara Acosta | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
+| 14 | Megan Lieu | craft_benchmark | — | Content strategy: pillars, cadence, attention → trust |
+
+Profile URLs live in `watchlist.json`. **Missing:** LinkedIn URLs for Nick Saraev and Isabella
+Bedoya, and which other platforms each creator is active on.
 
 ## Unverified claims in the source list
 
