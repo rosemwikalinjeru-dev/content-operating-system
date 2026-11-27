@@ -32,3 +32,5 @@ Last reviewed: 2026-11-26 (see docs/RECONNAISSANCE.md for evidence).
 | Cormorant Garamond, DM Sans, IBM Plex Mono | SIL OFL 1.1 | Brand typefaces (app UI, carousel exports) | Allowed, embedding in exports permitted |
 | Next.js, React, Zod, Supabase JS, Trigger.dev SDK | MIT / Apache-2.0 | Core app | Allowed |
 | Claude API, OpenAI API | Provider commercial terms | LLM providers | Allowed |
+| Anthropic TypeScript SDK (`@anthropic-ai/sdk`) | MIT | Claude provider adapter | Allowed |
+| Trigger.dev SDK and CLI | Apache-2.0 | Background job orchestration | Allowed |

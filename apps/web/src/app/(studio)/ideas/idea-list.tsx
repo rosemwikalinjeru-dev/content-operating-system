@@ -1,9 +1,10 @@
 "use client";
 
 import type { Idea, IdeaStatus, Page } from "@contentos/schemas";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiFetch } from "./api-client";
+import { apiFetch } from "@/lib/api-client";
 
 const NEXT_STATUS: Partial<Record<IdeaStatus, { to: IdeaStatus; label: string }>> = {
   inbox: { to: "developing", label: "Start developing" },
@@ -68,7 +69,9 @@ export function IdeaList({ initial, status }: { initial: Page<Idea>; status?: Id
             <li key={idea.id} className="card">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="font-semibold">{idea.title}</p>
+                  <Link href={`/ideas/${idea.id}`} className="font-semibold hover:underline">
+                    {idea.title}
+                  </Link>
                   {idea.raw_input !== idea.title && (
                     <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-muted">{idea.raw_input}</p>
                   )}

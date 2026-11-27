@@ -2,8 +2,9 @@
 
 Personal AI content research, strategy, production and editing studio for Rose Njeru Automation.
 
-**Status:** Phase 0 (Foundation) complete and live. Phase 1 (Content intelligence) next.
-See [Phase 0 report](docs/PHASE-0-REPORT.md).
+**Status:** Phase 0 complete and live. Phase 1 (Content intelligence) implemented and tested;
+awaiting deployment of background jobs. See [Phase 0 report](docs/PHASE-0-REPORT.md) and
+[Phase 1 report](docs/PHASE-1-REPORT.md).
 
 - [Architecture](docs/ARCHITECTURE.md) · [Reconnaissance](docs/RECONNAISSANCE.md) ·
   [Implementation plan](docs/IMPLEMENTATION-PLAN.md) · [API contracts](docs/API-CONTRACTS.md) ·
@@ -16,7 +17,11 @@ See [Phase 0 report](docs/PHASE-0-REPORT.md).
 apps/web/              Next.js 16 app: studio UI + /api/v1 route handlers
 packages/schemas/      Zod schemas shared by API, UI and (later) agents
 packages/shared/       errors, structured logger, cursor pagination, owner allowlist
-packages/database/     repositories over a user-scoped Supabase client (RLS always applies)
+packages/database/     repositories over a user-scoped Supabase client (RLS always applies);
+                       `/service` entry for workers only (service role, explicit user filters)
+packages/provider-gateway/  AI providers, model routing, pricing, budget-enforcing usage controller
+packages/intelligence/ prompt layers, Idea Analyst and Content Strategist agents, voice samples
+jobs/                  Trigger.dev tasks (idea analysis, brief generation)
 supabase/migrations/   schema, RLS, storage policies
 tests/db/              migration + RLS tests against a real Postgres
 ```
@@ -77,6 +82,25 @@ pnpm lint
 
 The service-role key is **not** used by the web app in Phase 0. Do not add it to Vercel until a
 phase needs it (Phase 1 background jobs run in Trigger.dev, which holds its own secrets).
+
+## Background jobs (Trigger.dev) — Phase 1
+
+Secrets and where they go. Never paste them into chat or commit them.
+
+| Secret | Where | Value |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Trigger.dev → Environment Variables → Production | console.anthropic.com → API Keys |
+| `SUPABASE_URL` | Trigger.dev → Environment Variables → Production | same as `NEXT_PUBLIC_SUPABASE_URL` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Trigger.dev → Environment Variables → Production | Supabase → Project Settings → API Keys → secret key |
+| `TRIGGER_SECRET_KEY` | Vercel → Environment Variables | Trigger.dev → API keys → Production (`tr_prod_…`) |
+| `TRIGGER_ACCESS_TOKEN` | GitHub → Settings → Secrets and variables → Actions | Trigger.dev → Account → Personal access tokens |
+| `TRIGGER_PROJECT_REF` | GitHub → Actions secrets | Trigger.dev → Project settings (`proj_…`) |
+
+Then:
+
+1. Apply the new migration in Supabase (SQL Editor): `supabase/migrations/20261127000100_content_intelligence.sql`.
+2. Run the **Deploy background jobs** workflow (GitHub → Actions), or push a change under `jobs/`.
+3. Redeploy Vercel so it picks up `TRIGGER_SECRET_KEY`.
 
 ## Vercel
 

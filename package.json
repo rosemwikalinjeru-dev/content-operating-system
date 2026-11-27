@@ -28,6 +28,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "@opentelemetry/api": "1.10.0"
+    }
   }
 }

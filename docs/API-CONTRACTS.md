@@ -60,6 +60,54 @@ Without `title`, the first line of `raw_input` is used. Without `brand_id`, the 
 ### `GET /api/v1/ideas/:id` · `PATCH /api/v1/ideas/:id` · `DELETE /api/v1/ideas/:id`
 PATCH body: any of `title`, `raw_input`, `tags`, `status`. DELETE is a soft delete → `204`.
 
+## Phase 1 endpoints
+
+Background work returns `202 Accepted` with `{ "job_id", "status", "created" }`; a duplicate
+request returns `200` with the existing job (`created: false`). Generation endpoints accept an
+`Idempotency-Key` header (8–128 chars of `A-Za-z0-9_:.-`); the UI sends a fresh one per click.
+
+### `POST /api/v1/ideas/:id/analyze[?force=1]`
+Starts idea analysis. Without `force`, the key is derived from the idea text, so analysing an
+unchanged idea again returns the same job at no cost. `force=1` runs a new analysis.
+
+### `POST /api/v1/projects`
+Body: `{ "idea_id": uuid, "title"?: string, "formats"?: ("linkedin"|"x_thread"|"carousel"|"short_video")[] }`
+(default `["linkedin","x_thread"]`). `201` project. Moves the idea from `inbox` to `developing`.
+
+### `GET /api/v1/projects` · `GET /api/v1/projects/:id`
+Projects with their brief versions (newest first).
+
+### `POST /api/v1/projects/:id/brief`
+Body: `{ "guidance"?: string (≤2000) }` — the owner's steer for this version. `202` job. Each run
+creates a new **pending** brief version.
+
+### `PATCH /api/v1/briefs/:id/approve` · `PATCH /api/v1/briefs/:id/reject`
+Approve (atomic: supersedes the previously approved version; the approved brief is immutable) or
+reject a pending brief. Approving a non-pending brief returns `409 CONFLICT`.
+
+### `GET /api/v1/jobs/:id`
+`{ job_id, job_type, status, progress, current_step, steps[], error, estimated_cost_usd,
+actual_cost_usd, result, created_at, completed_at }`. Statuses: `queued`, `running`,
+`awaiting_approval`, `completed`, `failed`, `cancelled`. A budget stop has
+`error.code = "BUDGET_EXCEEDED"`.
+
+### Knowledge
+- `GET /api/v1/knowledge?kind=&limit=&cursor=` — page of entries.
+- `POST /api/v1/knowledge` — `{ kind, title, body, source?, verified?, tags?, brand_id? }`.
+- `PATCH /api/v1/knowledge/:id` · `DELETE /api/v1/knowledge/:id` (soft delete).
+- `POST /api/v1/knowledge/import-voice-samples` — imports the owner's voice samples; idempotent.
+
+Kinds: `example_post`, `opinion`, `experience`, `story`, `fact`, `voice_rule`,
+`audience_insight`, `offer`, `banned_phrase`. Generation only uses `fact`, `story` and
+`experience` entries once `verified` is true (enforced in the database function).
+
+### `GET /api/v1/settings` · `PATCH /api/v1/settings`
+Budgets in USD: `budget_text_project_usd`, `budget_media_project_usd`, `budget_daily_usd`,
+`budget_monthly_usd` (0–10000).
+
+### `GET /api/v1/usage`
+`{ today_usd, month_usd, calls_this_month, by_task[], recent[], budgets }` (UTC windows).
+
 ## Types
 
 ```ts

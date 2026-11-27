@@ -1,0 +1,26 @@
+{
+  "name": "@contentos/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "trigger dev",
+    "deploy": "trigger deploy"
+  },
+  "dependencies": {
+    "@contentos/database": "workspace:*",
+    "@contentos/intelligence": "workspace:*",
+    "@contentos/provider-gateway": "workspace:*",
+    "@contentos/schemas": "workspace:*",
+    "@contentos/shared": "workspace:*",
+    "@trigger.dev/sdk": "4.8.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "trigger.dev": "4.8.4"
+  }
+}

@@ -20,8 +20,8 @@ export default async function SettingsPage() {
       </header>
       <BrandEditor brand={brand} />
       <div className="card text-sm text-muted">
-        Models, providers, API credentials and budgets are configured in Phase 1. Credentials are stored as
-        platform secrets, never in this app.
+        API keys are stored as platform secrets (Vercel and Trigger.dev), never in this app. Spending limits are
+        under Budgets &amp; usage.
       </div>
     </section>
   );

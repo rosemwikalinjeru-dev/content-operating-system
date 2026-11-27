@@ -1,0 +1,58 @@
+name: Deploy background jobs
+
+# Deploys jobs/ (Trigger.dev tasks) to production.
+# Requires repository secrets: TRIGGER_ACCESS_TOKEN and TRIGGER_PROJECT_REF.
+# Worker secrets (ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) live in
+# Trigger.dev → Environment Variables, never in GitHub or the repository.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/admiring-newton-1mmul7, main]
+    paths:
+      - "jobs/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-jobs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check secrets are configured
+        env:
+          TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          REF: ${{ secrets.TRIGGER_PROJECT_REF }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$REF" ]; then
+            echo "::warning::TRIGGER_ACCESS_TOKEN or TRIGGER_PROJECT_REF is not set; skipping deploy."
+            echo "skip=true" >> "$GITHUB_ENV"
+          fi
+      - uses: actions/checkout@v4
+        if: env.skip != 'true'
+      - uses: pnpm/action-setup@v4
+        if: env.skip != 'true'
+      - uses: actions/setup-node@v4
+        if: env.skip != 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: env.skip != 'true'
+      - name: Typecheck jobs
+        if: env.skip != 'true'
+        run: pnpm --filter @contentos/jobs typecheck
+      - name: Deploy to Trigger.dev
+        if: env.skip != 'true'
+        working-directory: jobs
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          TRIGGER_PROJECT_REF: ${{ secrets.TRIGGER_PROJECT_REF }}
+        run: pnpm exec trigger deploy

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiFetch } from "./api-client";
+import { apiFetch } from "@/lib/api-client";
 
 export function IdeaCapture() {
   const router = useRouter();

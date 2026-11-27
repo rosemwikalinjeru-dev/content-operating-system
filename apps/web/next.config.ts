@@ -9,7 +9,13 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
-  transpilePackages: ["@contentos/database", "@contentos/schemas", "@contentos/shared"],
+  transpilePackages: [
+    "@contentos/database",
+    "@contentos/intelligence",
+    "@contentos/provider-gateway",
+    "@contentos/schemas",
+    "@contentos/shared",
+  ],
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

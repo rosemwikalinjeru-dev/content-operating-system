@@ -3,7 +3,7 @@
 import { BRAND_DEFAULTS_VERSION, ROSE_NJERU_DEFAULTS, type BrandProfile } from "@contentos/schemas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiFetch } from "../ideas/api-client";
+import { apiFetch } from "@/lib/api-client";
 
 /** Rows needed to show the text, counting long lines as wrapping at ~90 characters (3–14). */
 const textRows = (v: string) =>
