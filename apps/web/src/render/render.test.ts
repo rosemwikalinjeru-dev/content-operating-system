@@ -23,6 +23,19 @@ const slides: DesignSlide[] = [
 ];
 
 describe("slide renderer", () => {
+  it("renders 1:1 slides at 1080×1080 with the same content and no readability issues", { timeout: 60_000 }, async () => {
+    const plans = planCarousel(slides, { template: "statement", brand, aspect: "1:1" });
+    expect(plans.flatMap((p) => p.issues)).toEqual([]);
+    const pngs = await Promise.all(plans.map((p) => renderSlidePng(p)));
+    for (const png of pngs) {
+      const view = new DataView(png.buffer, png.byteOffset);
+      expect([view.getUint32(16), view.getUint32(20)]).toEqual([1080, 1080]);
+    }
+    if (process.env.RENDER_OUT) pngs.forEach((png, i) => writeFileSync(`${process.env.RENDER_OUT}/square-${i + 1}.png`, png));
+    const pdf = await slidesToPdf(pngs, { width: 1080, height: 1080 });
+    expect(new TextDecoder().decode(pdf.slice(0, 5))).toBe("%PDF-");
+  });
+
   it("renders 1080×1350 PNGs and assembles the PDF and ZIP", { timeout: 60_000 }, async () => {
     for (const template of ["statement", "process"] as const) {
       const plans = planCarousel(slides, { template, brand });

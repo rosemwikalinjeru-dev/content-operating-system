@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  ASPECT_LABELS,
+  CAROUSEL_ASPECTS,
   CAROUSEL_TEMPLATES,
   SLIDE_LAYOUTS,
   TEMPLATE_LABELS,
+  type CarouselAspect,
   type CarouselDesignView,
   type CarouselTemplate,
   type DesignSlide,
@@ -14,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { JobProgress } from "@/components/job-progress";
 import { apiFetch } from "@/lib/api-client";
 
-type Design = CarouselDesignView & { issues: ReadabilityIssue[] };
+type Design = CarouselDesignView & { issues: ReadabilityIssue[]; issues_square: ReadabilityIssue[] };
 type Editable = Omit<DesignSlide, "id"> & { key: string };
 
 const LAYOUT_LABEL: Record<SlideLayout, string> = {
@@ -143,6 +146,11 @@ function DesignPanel({
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ error: boolean; text: string } | null>(null);
   const [exportReason, setExportReason] = useState("");
+  const [aspect, setAspect] = useState<CarouselAspect>("4:5");
+  const [exportAspects, setExportAspects] = useState<CarouselAspect[]>(["4:5", "1:1"]);
+  const issuesOf = (a: CarouselAspect) => (a === "4:5" ? design.issues : design.issues_square);
+  const shownIssues = issuesOf(aspect);
+  const exportIssues = exportAspects.flatMap(issuesOf);
   const [files, setFiles] = useState<Array<{ file: string; url: string }>>([]);
 
   async function act(key: string, fn: () => Promise<string | void>) {
@@ -173,7 +181,7 @@ function DesignPanel({
     act("export", async () => {
       const r = await apiFetch<{ files: Array<{ file: string; url: string }>; overridden: boolean }>(`/api/v1/designs/${design.id}/export`, {
         method: "POST",
-        json: design.issues.length ? { override_reason: exportReason } : {},
+        json: { aspects: exportAspects, ...(exportIssues.length ? { override_reason: exportReason } : {}) },
       });
       setFiles(r.files);
       return r.overridden ? "Exported with your recorded reason." : "Exported. Links work for 10 minutes.";
@@ -187,7 +195,7 @@ function DesignPanel({
     [next[i], next[j]] = [next[j]!, next[i]!];
     setDraft(next);
   };
-  const issuesFor = (slide: string) => design.issues.filter((x) => x.slide === slide);
+  const issuesFor = (slide: string) => shownIssues.filter((x) => x.slide === slide);
 
   return (
     <div className="space-y-4">
@@ -201,8 +209,15 @@ function DesignPanel({
             ))}
           </select>
           <span className="chip">{TEMPLATE_LABELS[design.template]}</span>
-          <span className={`chip ${design.issues.length ? "border-red-600 text-red-600" : ""}`}>
-            {design.issues.length ? `${design.issues.length} readability issue${design.issues.length === 1 ? "" : "s"}` : "Readability: all slides pass"}
+          <select className="input w-auto" value={aspect} onChange={(e) => setAspect(e.target.value as CarouselAspect)} aria-label="Preview size">
+            {CAROUSEL_ASPECTS.map((a) => (
+              <option key={a} value={a}>
+                Preview {a}
+              </option>
+            ))}
+          </select>
+          <span className={`chip ${shownIssues.length ? "border-red-600 text-red-600" : ""}`}>
+            {shownIssues.length ? `${shownIssues.length} readability issue${shownIssues.length === 1 ? "" : "s"} at ${aspect}` : `Readability at ${aspect}: all slides pass`}
           </span>
           {design.change_note && <span className="text-xs text-muted">{design.change_note}</span>}
         </div>
@@ -243,7 +258,7 @@ function DesignPanel({
             {!editing && (
               // Preview images are rendered server-side from the saved (immutable) design.
               <img
-                src={`/api/v1/designs/${design.id}/slides/${s.key}`}
+                src={`/api/v1/designs/${design.id}/slides/${s.key}?aspect=${encodeURIComponent(aspect)}`}
                 alt={`Slide ${i + 1}: ${s.headline}`}
                 className="w-full rounded border border-[var(--border)]"
                 loading="lazy"
@@ -279,7 +294,20 @@ function DesignPanel({
       {!editing && (
         <div className="space-y-2 border-t border-[var(--border)] pt-4">
           <p className="font-semibold">Export</p>
-          {design.issues.length > 0 && (
+          <fieldset className="flex flex-wrap gap-4 text-sm">
+            <legend className="sr-only">Sizes</legend>
+            {CAROUSEL_ASPECTS.map((a) => (
+              <label key={a} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={exportAspects.includes(a)}
+                  onChange={(e) => setExportAspects(e.target.checked ? [...exportAspects, a] : exportAspects.filter((x) => x !== a))}
+                />
+                {ASPECT_LABELS[a]}
+              </label>
+            ))}
+          </fieldset>
+          {exportIssues.length > 0 && (
             <input
               className="input"
               placeholder="Readability checks fail. To export anyway, say why (recorded with the export)."
@@ -287,7 +315,11 @@ function DesignPanel({
               onChange={(e) => setExportReason(e.target.value)}
             />
           )}
-          <button className="btn-primary" onClick={doExport} disabled={busy !== null || (design.issues.length > 0 && exportReason.trim().length < 5)}>
+          <button
+            className="btn-primary"
+            onClick={doExport}
+            disabled={busy !== null || exportAspects.length === 0 || (exportIssues.length > 0 && exportReason.trim().length < 5)}
+          >
             {busy === "export" ? "Rendering…" : "Export PNG, PDF and ZIP"}
           </button>
           {files.length > 0 && (

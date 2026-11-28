@@ -32,6 +32,8 @@ export async function saveRender(input: {
   mime: "image/png" | "application/pdf" | "application/zip";
   overrideReason?: string;
   issues?: unknown[];
+  width?: number;
+  height?: number;
 }): Promise<SavedRender> {
   const db = serviceDb();
   const ext = input.mime === "image/png" ? "png" : input.mime === "application/pdf" ? "pdf" : "zip";
@@ -50,8 +52,8 @@ export async function saveRender(input: {
       storage_path: path,
       mime_type: input.mime,
       size_bytes: input.bytes.byteLength,
-      width: input.mime === "image/png" ? 1080 : null,
-      height: input.mime === "image/png" ? 1350 : null,
+      width: input.width ?? null,
+      height: input.height ?? null,
       checksum: createHash("sha256").update(input.bytes).digest("hex"),
       metadata: {
         asset_id: input.assetId,

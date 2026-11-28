@@ -140,7 +140,16 @@ export const SlideReviseRequest = z.object({
   instruction: z.string().trim().min(3).max(1000),
 });
 
+/** Output sizes: 4:5 for Instagram, TikTok and LinkedIn; 1:1 for YouTube posts. */
+export const CAROUSEL_ASPECTS = ["4:5", "1:1"] as const;
+export type CarouselAspect = (typeof CAROUSEL_ASPECTS)[number];
+export const ASPECT_LABELS: Record<CarouselAspect, string> = {
+  "4:5": "4:5 · Instagram, TikTok, LinkedIn (1080×1350)",
+  "1:1": "1:1 · YouTube posts (1080×1080)",
+};
+
 export const ExportRequest = z.object({
+  aspects: z.array(z.enum(CAROUSEL_ASPECTS)).min(1).max(2).default(["4:5"]),
   /** Required to export while a readability check fails; recorded with the export. */
   override_reason: z.string().trim().min(5).max(1000).optional(),
 });

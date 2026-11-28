@@ -14,7 +14,11 @@ export const GET = api<Params>(async ({ params }) => {
   const ctx = await designContext(db, id);
   const [designs, exports] = await Promise.all([listDesigns(db, id), listExports(db, id)]);
   return json({
-    data: designs.map((d) => ({ ...d, issues: planCarousel(d.slides, { template: d.template, brand: ctx.brand }).flatMap((p) => p.issues) })),
+    data: designs.map((d) => ({
+      ...d,
+      issues: planCarousel(d.slides, { template: d.template, brand: ctx.brand, aspect: "4:5" }).flatMap((p) => p.issues),
+      issues_square: planCarousel(d.slides, { template: d.template, brand: ctx.brand, aspect: "1:1" }).flatMap((p) => p.issues),
+    })),
     exports,
   });
 });

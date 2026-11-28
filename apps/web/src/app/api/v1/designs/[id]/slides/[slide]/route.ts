@@ -10,7 +10,7 @@ import { renderSlidePng } from "@/render/render";
 type Params = { id: string; slide: string };
 
 /** Preview one slide as PNG. Designs are immutable, so the browser may cache it privately. */
-export async function GET(_req: NextRequest, context: { params: Promise<Params> }): Promise<Response> {
+export async function GET(req: NextRequest, context: { params: Promise<Params> }): Promise<Response> {
   const requestId = crypto.randomUUID();
   try {
     const { db } = await requireApiSession();
@@ -19,7 +19,8 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
     if (!id.success || !/^d\d{1,2}$/.test(params.slide)) throw new AppError("VALIDATION_FAILED", "Invalid slide.");
     const design = await getDesign(db, id.data);
     const ctx = await designContext(db, design.asset_id);
-    const plans = planCarousel(design.slides, { template: design.template, brand: ctx.brand });
+    const aspect = req.nextUrl.searchParams.get("aspect") === "1:1" ? "1:1" : "4:5";
+    const plans = planCarousel(design.slides, { template: design.template, brand: ctx.brand, aspect });
     const plan = plans.find((p) => p.slideId === params.slide);
     if (!plan) throw new AppError("NOT_FOUND", "Slide not found.");
     const mediaIds = plan.elements.flatMap((e) => (e.kind === "image" ? [e.mediaId] : []));

@@ -8,6 +8,13 @@ import { contrast } from "./color";
 import { fitText, wordCount, type FontRole } from "./text";
 
 export const CANVAS = { width: 1080, height: 1350, pad: 96 } as const;
+
+/** Output sizes. Layouts are authored at 4:5 and scaled vertically for other ratios. */
+export const ASPECT_SIZES = {
+  "4:5": { width: 1080, height: 1350 },
+  "1:1": { width: 1080, height: 1080 },
+} as const;
+export type Aspect = keyof typeof ASPECT_SIZES;
 /** Smallest readable content size on a phone (1080px canvas shown ~380px wide). */
 export const MIN_FONT = 28;
 export const MAX_WORDS = 25;
@@ -110,6 +117,15 @@ export interface SlidePlan {
 interface Ctx {
   theme: Theme;
   els: PlanEl[];
+  /** Vertical scale from the 1350px authoring height to the output height. */
+  sy: number;
+}
+
+const sv = (ctx: Ctx, v: number) => Math.round(v * ctx.sy);
+
+function pushShape(ctx: Ctx, el: RectEl | ArrowEl | ImageEl): void {
+  if (el.kind === "arrow") ctx.els.push({ ...el, y1: sv(ctx, el.y1), y2: sv(ctx, el.y2) });
+  else ctx.els.push({ ...el, y: sv(ctx, el.y), h: sv(ctx, el.h) });
 }
 
 function text(
@@ -117,8 +133,11 @@ function text(
   part: string,
   value: string,
   box: { x: number; y: number; w: number; h: number },
-  opts: { font: FontRole; max: number; min?: number; weight?: TextEl["weight"]; color?: string; on?: string; align?: TextEl["align"]; emphasis?: string[]; decorative?: boolean },
+  opts: { font: FontRole; max: number; min?: number; weight?: TextEl["weight"]; color?: string; on?: string; align?: TextEl["align"]; emphasis?: string[]; decorative?: boolean; absolute?: boolean; fixedHeight?: boolean },
 ): TextEl {
+  // Boxes are authored at 1350px tall; scale them to the output height before fitting.
+  // Single-line labels keep their height (they only move); text blocks scale with the canvas.
+  if (!opts.absolute) box = { ...box, y: sv(ctx, box.y), h: opts.fixedHeight ? box.h : sv(ctx, box.h) };
   const fit = fitText(value, box, opts.font, opts.max, opts.min ?? MIN_FONT);
   const el: TextEl = {
     kind: "text",
@@ -156,18 +175,20 @@ export function orderNodes(diagram: { nodes: Array<{ id: string; label: string }
 
 export function planSlide(
   slide: DesignSlide,
-  opts: { template: CarouselTemplate; brand: Pick<BrandProfile, "brand_guidelines" | "name">; index: number; total: number },
+  opts: { template: CarouselTemplate; brand: Pick<BrandProfile, "brand_guidelines" | "name">; index: number; total: number; aspect?: Aspect },
 ): SlidePlan {
   const theme = themeFor(opts.template, opts.brand);
-  const ctx: Ctx = { theme, els: [] };
-  const { width: W, height: H, pad: P } = CANVAS;
+  const size = ASPECT_SIZES[opts.aspect ?? "4:5"];
+  const ctx: Ctx = { theme, els: [], sy: size.height / CANVAS.height };
+  const { width: W, pad: P } = CANVAS;
+  const H = size.height;
   const cw = W - 2 * P;
   const bg = theme.bg;
   const hf = theme.headlineFont;
   const bf = theme.bodyFont;
   const hw: TextEl["weight"] = hf === "display" ? 600 : 700;
 
-  if (slide.kicker) text(ctx, "kicker", slide.kicker.toUpperCase(), { x: P, y: P, w: cw, h: 44 }, { font: "mono", max: 30, color: theme.accent, weight: 500 });
+  if (slide.kicker) text(ctx, "kicker", slide.kicker.toUpperCase(), { x: P, y: P, w: cw, h: 44 }, { font: "mono", max: 30, color: theme.accent, weight: 500, fixedHeight: true });
 
   switch (slide.layout) {
     case "cover":
@@ -194,8 +215,8 @@ export function planSlide(
     case "before_after": {
       text(ctx, "headline", slide.headline, { x: P, y: 190, w: cw, h: 260 }, { font: hf, max: 70, min: 44, weight: hw, emphasis: slide.emphasis });
       const card = (label: string, value: string, y: number, fill: string, ink: string) => {
-        ctx.els.push({ kind: "rect", x: P, y, w: cw, h: 310, fill, radius: 24 });
-        text(ctx, `${label}_label`, label, { x: P + 40, y: y + 32, w: cw - 80, h: 40 }, { font: "mono", max: 28, color: ink, on: fill, weight: 500 });
+        pushShape(ctx, { kind: "rect", x: P, y, w: cw, h: 310, fill, radius: 24 });
+        text(ctx, `${label}_label`, label, { x: P + 40, y: y + 32, w: cw - 80, h: 40 }, { font: "mono", max: 28, color: ink, on: fill, weight: 500, fixedHeight: true });
         text(ctx, label, value, { x: P + 40, y: y + 84, w: cw - 80, h: 200 }, { font: bf, max: 44, color: ink, on: fill });
       };
       card("BEFORE", slide.before ?? "", 490, theme.card, theme.cardText);
@@ -211,9 +232,9 @@ export function planSlide(
       const boxH = Math.min(130, Math.floor((area - gap * (nodes.length - 1)) / Math.max(1, nodes.length)));
       nodes.forEach((node, i) => {
         const y = top + i * (boxH + gap);
-        ctx.els.push({ kind: "rect", x: P + 60, y, w: cw - 120, h: boxH, fill: theme.card, radius: 18 });
+        pushShape(ctx, { kind: "rect", x: P + 60, y, w: cw - 120, h: boxH, fill: theme.card, radius: 18 });
         text(ctx, `node_${node.id}`, node.label, { x: P + 96, y: y + 14, w: cw - 192, h: boxH - 28 }, { font: "body", max: 38, color: theme.cardText, on: theme.card, align: "center", weight: 500 });
-        if (i < nodes.length - 1) ctx.els.push({ kind: "arrow", x: W / 2, y1: y + boxH + 6, y2: y + boxH + gap - 6, color: theme.accent });
+        if (i < nodes.length - 1) pushShape(ctx, { kind: "arrow", x: W / 2, y1: y + boxH + 6, y2: y + boxH + gap - 6, color: theme.accent });
       });
       if (slide.body) text(ctx, "body", slide.body, { x: P, y: 1060, w: cw, h: 110 }, { font: bf, max: 34, color: theme.muted });
       break;
@@ -222,9 +243,9 @@ export function planSlide(
       text(ctx, "headline", slide.headline, { x: P, y: 190, w: cw, h: 230 }, { font: hf, max: 62, min: 42, weight: hw, emphasis: slide.emphasis });
       const box = { x: P, y: 450, w: cw, h: 600 };
       const media = slide.visual.type === "screenshot" ? slide.visual.media_id : null;
-      if (media) ctx.els.push({ kind: "image", ...box, mediaId: media });
+      if (media) pushShape(ctx, { kind: "image", ...box, mediaId: media });
       else {
-        ctx.els.push({ kind: "rect", ...box, fill: theme.card, radius: 20, stroke: theme.muted });
+        pushShape(ctx, { kind: "rect", ...box, fill: theme.card, radius: 20, stroke: theme.muted });
         text(ctx, "placeholder", "Add your screenshot", { x: P + 40, y: 720, w: cw - 80, h: 60 }, { font: "body", max: 36, color: theme.muted, on: theme.card, align: "center" });
       }
       const caption = slide.visual.type === "screenshot" ? slide.visual.caption ?? slide.body : slide.body;
@@ -234,10 +255,10 @@ export function planSlide(
   }
 
   // Footer: brand and position. Decorative, so exempt from the content minimum size.
-  text(ctx, "footer_brand", opts.brand.name, { x: P, y: H - P - 34, w: cw - 200, h: 40 }, { font: "body", max: 26, min: 20, color: theme.muted, decorative: true, weight: 500 });
-  text(ctx, "footer_page", `${opts.index + 1} / ${opts.total}`, { x: W - P - 180, y: H - P - 34, w: 180, h: 40 }, { font: "mono", max: 26, min: 20, color: theme.muted, decorative: true, align: "right" });
+  text(ctx, "footer_brand", opts.brand.name, { x: P, y: H - P - 34, w: cw - 200, h: 40 }, { font: "body", max: 26, min: 20, color: theme.muted, decorative: true, weight: 500, absolute: true });
+  text(ctx, "footer_page", `${opts.index + 1} / ${opts.total}`, { x: W - P - 180, y: H - P - 34, w: 180, h: 40 }, { font: "mono", max: 26, min: 20, color: theme.muted, decorative: true, align: "right", absolute: true });
 
-  const plan: SlidePlan = { slideId: slide.id, width: W, height: H, bg, elements: ctx.els, issues: [] };
+  const plan: SlidePlan = { slideId: slide.id, width: size.width, height: H, bg, elements: ctx.els, issues: [] };
   plan.issues = checkPlan(plan, slide);
   return plan;
 }
@@ -269,7 +290,7 @@ export function checkPlan(plan: SlidePlan, slide: DesignSlide): ReadabilityIssue
 
 export function planCarousel(
   slides: DesignSlide[],
-  opts: { template: CarouselTemplate; brand: Pick<BrandProfile, "brand_guidelines" | "name"> },
+  opts: { template: CarouselTemplate; brand: Pick<BrandProfile, "brand_guidelines" | "name">; aspect?: Aspect },
 ): SlidePlan[] {
   return slides.map((s, index) => planSlide(s, { ...opts, index, total: slides.length }));
 }

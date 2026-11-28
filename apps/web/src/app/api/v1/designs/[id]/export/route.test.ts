@@ -39,13 +39,19 @@ describe("POST /api/v1/designs/:id/export", () => {
     });
     const blocked = await POST(req({}), ctx);
     expect(blocked.status).toBe(409);
-    expect((await blocked.json()).error.message).toMatch(/d2: 30 words/);
+    expect((await blocked.json()).error.message).toMatch(/d2 \(4:5\): 30 words/);
     expect(saveRender).not.toHaveBeenCalled();
 
     const ok = await POST(req({ override_reason: "Dense on purpose for a checklist" }), ctx);
     expect(ok.status).toBe(201);
     const files = (await ok.json()).files.map((f: { file: string }) => f.file);
-    expect(files).toEqual(["missed-quotes-v2.pdf", "missed-quotes-v2.zip", "missed-quotes-v2-slide-01.png", "missed-quotes-v2-slide-02.png", "missed-quotes-v2-slide-03.png"]);
+    expect(files).toEqual(["missed-quotes-v2-4x5.pdf", "missed-quotes-v2-4x5.zip", "missed-quotes-v2-4x5-slide-01.png", "missed-quotes-v2-4x5-slide-02.png", "missed-quotes-v2-4x5-slide-03.png"]);
+
+    saveRender.mockClear();
+    const both = await POST(req({ aspects: ["4:5", "1:1"], override_reason: "Dense on purpose for a checklist" }), ctx);
+    const names = (await both.json()).files.map((f: { file: string }) => f.file);
+    expect(names.filter((n: string) => n.includes("-1x1"))).toHaveLength(5);
+    expect(saveRender.mock.calls.find((c) => c[0].file.endsWith("1x1-slide-01.png"))![0]).toMatchObject({ width: 1080, height: 1080 });
     expect(saveRender.mock.calls[0]![0]).toMatchObject({ overrideReason: "Dense on purpose for a checklist", designVersion: 2 });
   });
 });
