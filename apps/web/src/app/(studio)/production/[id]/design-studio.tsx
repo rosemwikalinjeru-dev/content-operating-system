@@ -13,12 +13,14 @@ import {
   type ReadabilityIssue,
   type SlideLayout,
 } from "@contentos/schemas";
+import { planCarousel, slideDuration } from "@contentos/visual";
 import { useCallback, useEffect, useState } from "react";
 import { JobProgress } from "@/components/job-progress";
 import { apiFetch } from "@/lib/api-client";
 
 type Design = CarouselDesignView & { issues: ReadabilityIssue[]; issues_square: ReadabilityIssue[] };
 type Editable = Omit<DesignSlide, "id"> & { key: string };
+type BrandLite = Parameters<typeof planCarousel>[1]["brand"];
 
 const LAYOUT_LABEL: Record<SlideLayout, string> = {
   cover: "Cover",
@@ -32,6 +34,7 @@ const LAYOUT_LABEL: Record<SlideLayout, string> = {
 
 export function DesignStudio({ assetId }: { assetId: string }) {
   const [designs, setDesigns] = useState<Design[] | null>(null);
+  const [brand, setBrand] = useState<BrandLite | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [job, setJob] = useState<{ id: string; label: string } | null>(null);
   const [template, setTemplate] = useState<CarouselTemplate | "auto">("auto");
@@ -40,8 +43,9 @@ export function DesignStudio({ assetId }: { assetId: string }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await apiFetch<{ data: Design[] }>(`/api/v1/assets/${assetId}/designs`);
+      const res = await apiFetch<{ data: Design[]; brand: BrandLite }>(`/api/v1/assets/${assetId}/designs`);
       setDesigns(res.data);
+      setBrand(res.brand);
       setSelected((s) => (s && res.data.some((d) => d.version === s) ? s : (res.data[0]?.version ?? null)));
     } catch (err) {
       setMsg({ error: true, text: (err as Error).message });
@@ -115,6 +119,7 @@ export function DesignStudio({ assetId }: { assetId: string }) {
           }}
           onJob={(id, label) => setJob({ id, label })}
           assetId={assetId}
+          brand={brand}
         />
       )}
     </section>
@@ -132,7 +137,9 @@ function DesignPanel({
   onSaved,
   onJob,
   assetId,
+  brand,
 }: {
+  brand: BrandLite | null;
   design: Design;
   versions: number[];
   onSelect: (v: number) => void;
@@ -290,6 +297,8 @@ function DesignPanel({
           </li>
         ))}
       </ol>
+
+      {!editing && brand && <VideoExport design={design} brand={brand} />}
 
       {!editing && (
         <div className="space-y-2 border-t border-[var(--border)] pt-4">
@@ -501,6 +510,72 @@ function SlideEditor({
           4,
         )}
       {field("Supporting line", s.body, (v) => onChange({ body: v }), 2)}
+    </div>
+  );
+}
+
+/** Motion graphics: the browser animates the slides and builds an MP4 (nothing is uploaded). */
+function VideoExport({ design, brand }: { design: Design; brand: BrandLite }) {
+  const [aspect, setAspect] = useState<CarouselAspect>("4:5");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [file, setFile] = useState<{ url: string; name: string } | null>(null);
+  const issues = aspect === "4:5" ? design.issues : design.issues_square;
+  const plans = planCarousel(design.slides, { template: design.template, brand, aspect });
+  const seconds = Math.round(plans.reduce((t, p) => t + slideDuration(p), 0));
+
+  async function make() {
+    setError(null);
+    setFile(null);
+    setProgress(0);
+    try {
+      const { encodeCarousel, loadImages, videoSupported } = await import("@/motion/encode");
+      if (!videoSupported()) throw new Error("This browser cannot make MP4 video. Use Chrome, Edge or Safari on a computer.");
+      const mediaIds = [...new Set(plans.flatMap((p) => p.elements.flatMap((e) => (e.kind === "image" ? [e.mediaId] : []))))];
+      const images = await loadImages(Object.fromEntries(mediaIds.map((id) => [id, `/api/v1/media/${id}`])));
+      const blob = await encodeCarousel(plans, { images, onProgress: (d, t) => setProgress(Math.round((d / t) * 100)) });
+      const name = `carousel-v${design.version}-${aspect === "4:5" ? "4x5" : "1x1"}.mp4`;
+      setFile({ url: URL.createObjectURL(blob), name });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setProgress(null);
+    }
+  }
+
+  return (
+    <div className="space-y-2 border-t border-[var(--border)] pt-4">
+      <p className="font-semibold">Motion graphics (MP4)</p>
+      <p className="text-sm text-muted">
+        Calm animation: text eases in, highlighted words light up, diagrams build step by step. About {seconds} seconds. Made in this
+        browser, so keep the tab open until it finishes.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <select className="input w-auto" value={aspect} onChange={(e) => setAspect(e.target.value as CarouselAspect)} aria-label="Video size">
+          {CAROUSEL_ASPECTS.map((a) => (
+            <option key={a} value={a}>
+              {ASPECT_LABELS[a]}
+            </option>
+          ))}
+        </select>
+        <button className="btn-primary" onClick={make} disabled={progress !== null}>
+          {progress !== null ? `Making video… ${progress}%` : "Export video"}
+        </button>
+      </div>
+      {issues.length > 0 && <p className="text-xs text-red-600">⚠ {issues.length} readability issue(s) at this size; the video shows the slides as they are.</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
+      {file && (
+        <div className="space-y-2">
+          <video src={file.url} controls muted playsInline className="w-full max-w-sm rounded border border-[var(--border)]" />
+          <a className="btn-ghost inline-block" href={file.url} download={file.name}>
+            Download {file.name}
+          </a>
+        </div>
+      )}
     </div>
   );
 }

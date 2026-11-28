@@ -19,6 +19,19 @@ Status: **BUILT — awaiting the owner's exit check.** First apply `202612010001
 | API | design, list designs, manual edit, slide preview PNG, slide revise, screenshot upload, export (see API-CONTRACTS "Phase 5 endpoints") |
 | UI | Project → Carousel narrative tab → **Carousel design**: template picker, Design carousel, version picker, a readability badge, slide previews with per-slide issues, **Revise** and **Upload screenshot** per slide, **Edit slides** (layout, text, highlights, list items, before/after, diagram steps, reorder, add, remove), and **Export** with a recorded reason when checks fail |
 
+## 1A. Sizes and motion graphics (owner request, 2026-11-28)
+
+- **Sizes.**
+  - 4:5 (1080×1350) is for Instagram, TikTok photo mode and LinkedIn; 1:1 (1080×1080) is for YouTube posts.
+  - Layouts are authored at 4:5 and scaled vertically for 1:1. Single-line labels keep their height.
+  - Preview, readability and export all work per size. Export makes a PDF and ZIP for each size, with `-4x5` or `-1x1` in the file names.
+- **Motion graphics (MP4).** The owner chose to make the video in her browser, with calm motion.
+  - The timeline is pure and tested (`packages/visual/src/motion.ts`). Elements ease up and fade in, staggered; highlighted words light up after the headline settles; diagram arrows draw between boxes; the footer stays still. Each slide holds for reading, then dissolves into the next. Slides last about 3–6 seconds.
+  - Frames are drawn on a canvas from the same layout plan as the PNGs (`apps/web/src/motion/draw.ts`), encoded as H.264 with WebCodecs, and packed into an MP4 with mp4-muxer (`apps/web/src/motion/encode.ts`).
+  - Nothing is uploaded. Owner screenshots load through `GET /api/v1/media/:id`, which serves only her own files.
+  - **Verified in headless Chromium:** a 3-slide carousel produced H.264 High-profile MP4s at 1080×1350 and 1080×1080, 30fps, 11.9s, with 357 frames each. The files were checked with ffprobe, and frames were extracted and inspected.
+  - **Limit:** it needs a browser with WebCodecs and H.264 encoding (Chrome, Edge or Safari on a computer). Other browsers show a clear message. The Phase 6 media server can render the same timeline server-side later.
+
 ## 2. Checked visually
 
 Sample slides were rendered and inspected: cover, list, before/after, diagram and closing, in the Statement and Process templates.

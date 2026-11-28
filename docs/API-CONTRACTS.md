@@ -204,7 +204,9 @@ A slide is `{ id: "d1".., layout: cover|statement|list|before_after|diagram|scre
 - `POST /api/v1/designs/:id/screenshot` takes a multipart upload with `slide`, `file` (PNG or JPEG, up to 5 MB, detected from the file's bytes) and `rights=yes`.
   - The file is stored in the owner's private uploads folder.
   - It creates a new design version with the image attached.
-- `POST /api/v1/designs/:id/export` takes `{ override_reason? }`.
+- `GET /api/v1/designs/:id/slides/:slide?aspect=4:5|1:1` previews a slide at either size.
+- `GET /api/v1/media/:id` streams one of the owner's uploaded images (RLS). The browser video export uses it.
+- `POST /api/v1/designs/:id/export` takes `{ aspects?: ("4:5"|"1:1")[] (default ["4:5"]), override_reason? }`.
   - It renders 1080×1350 PNGs, one PDF and a ZIP into the private renders bucket, and returns 10-minute signed links.
   - It returns `409` while a readability check fails, unless `override_reason` (at least 5 characters) is given; the reason is recorded with the export.
 

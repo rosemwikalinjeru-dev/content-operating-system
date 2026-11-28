@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "2.119.0",
     "@trigger.dev/sdk": "4.8.5",
     "fflate": "0.8.3",
+    "mp4-muxer": "5.2.2",
     "next": "16.4.6",
     "pdf-lib": "1.17.1",
     "react": "19.3.1",

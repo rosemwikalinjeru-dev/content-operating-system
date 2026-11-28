@@ -31,6 +31,8 @@ Last reviewed: 2026-11-27 (Phase 5 rendering added); originally 2026-11-26 (see 
 | next/og (Satori + resvg, bundled with Next.js) | MIT (Next.js); Satori MPL-2.0; resvg-js MPL-2.0 | Renders carousel slides to PNG (Phase 5) | Allowed; used unmodified as part of Next.js |
 | pdf-lib 1.17.1 | MIT | Assembles carousel PDFs (Phase 5) | Allowed |
 | fflate 0.8.3 | MIT | Builds carousel ZIPs (Phase 5) | Allowed |
+| mp4-muxer 5.2.2 | MIT | Packs browser-encoded H.264 frames into MP4 for carousel motion graphics (Phase 5) | Allowed. The author marks it superseded by Mediabunny (MPL-2.0); it is feature-complete for our use, and migrating is a later option |
+| WebCodecs (browser API) | Browser feature; H.264 encoding provided by the owner's browser and OS | Encodes motion-graphics video on the owner's computer | Allowed; no files leave the browser |
 | Cormorant Garamond, DM Sans, IBM Plex Mono (via @fontsource woff files) | SIL Open Font License 1.1 | Brand fonts bundled for slide rendering (`apps/web/src/render/fonts`, licence files alongside) | Allowed; fonts are not sold on their own |
 | Playwright | Apache-2.0 | Carousel rendering | Allowed |
 | Cormorant Garamond, DM Sans, IBM Plex Mono | SIL OFL 1.1 | Brand typefaces (app UI, carousel exports) | Allowed, embedding in exports permitted |

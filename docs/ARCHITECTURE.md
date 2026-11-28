@@ -42,7 +42,7 @@ idea inbox.
 | Research | ScrapeCreators primary; Agent-Reach optional, no logged-in channels **[R]** |
 | Voice | Kokoro sidecar behind `VoiceProvider`, hosted fallback |
 | Images | Hosted API behind `ImageProvider`; FLUX.2 Klein 4B is the only allowed FLUX variant |
-| Carousels | Slide JSON → layout plan (`@contentos/visual`) → next/og (Satori) in Vercel functions → PNG; pdf-lib → PDF; fflate → ZIP (no image model for text). **[P5]** Owner-approved change from Playwright (2026-11-27); Playwright stays the fallback if a template needs full CSS. |
+| Carousels | Slide JSON → layout plan (`@contentos/visual`) → next/og (Satori) in Vercel functions → PNG; pdf-lib → PDF; fflate → ZIP (no image model for text). **[P5]** Owner-approved change from Playwright (2026-11-27); Playwright stays the fallback if a template needs full CSS. Sizes 4:5 and 1:1. Motion graphics: same plan → canvas → WebCodecs H.264 → mp4-muxer, in the owner's browser (owner choice 2026-11-28); Phase 6 may add server rendering. |
 | Publishing | Manual approval and export only |
 | Cost | Central AI Usage Controller; per-project, daily and monthly budgets enforced in the gateway |
 

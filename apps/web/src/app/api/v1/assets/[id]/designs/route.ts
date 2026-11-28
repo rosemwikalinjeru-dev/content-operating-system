@@ -20,6 +20,8 @@ export const GET = api<Params>(async ({ params }) => {
       issues_square: planCarousel(d.slides, { template: d.template, brand: ctx.brand, aspect: "1:1" }).flatMap((p) => p.issues),
     })),
     exports,
+    // Name and colours only: the browser plans frames for the video export with the same engine.
+    brand: { name: ctx.brand.name, brand_guidelines: ctx.brand.brand_guidelines },
   });
 });
 
