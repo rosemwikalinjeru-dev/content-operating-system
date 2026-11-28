@@ -180,7 +180,8 @@ export type MasterBriefOutput = z.infer<typeof MasterBriefOutput>;
 export const ProjectCreate = z.object({
   idea_id: Uuid,
   title: z.string().trim().min(1).max(200).optional(),
-  formats: z.array(ContentFormat).min(1).max(CONTENT_FORMATS.length).default(["linkedin", "x_thread"]),
+  /** Defaults to the idea's chosen formats (ideas from a post), else LinkedIn + X thread. */
+  formats: z.array(ContentFormat).min(1).max(CONTENT_FORMATS.length).optional(),
 });
 export type ProjectCreate = z.infer<typeof ProjectCreate>;
 

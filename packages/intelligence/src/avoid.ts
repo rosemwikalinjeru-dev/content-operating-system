@@ -22,6 +22,43 @@ export interface AvoidList {
   openers: string[];
   closers: string[];
   phrases: string[];
+  /** What the niche is already saying (from collected research posts). */
+  niche?: NicheTakes;
+}
+
+export interface NicheTakes {
+  topics: string[];
+  phrases: string[];
+}
+
+/**
+ * The niche's common takes: problem topics that recur across collected posts, and 5+ word
+ * phrases used in three or more different posts. New content must find its own angle.
+ */
+export function buildNicheTakes(posts: Array<{ text: string; topic: string | null }>, limits = { topics: 10, phrases: 12 }): NicheTakes {
+  const counts = new Map<string, number>();
+  for (const p of posts) {
+    const t = p.topic?.trim().toLowerCase();
+    if (t) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  const topics = [...counts.entries()].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, limits.topics).map(([t]) => t);
+  const seen = new Map<string, Set<number>>();
+  posts.forEach((p, i) => {
+    const words = normalise(p.text).split(" ").filter(Boolean);
+    for (let k = 0; k + 5 <= words.length; k++) {
+      const g = words.slice(k, k + 5).join(" ");
+      if (!seen.has(g)) seen.set(g, new Set());
+      seen.get(g)!.add(i);
+    }
+  });
+  const phrases: string[] = [];
+  for (const [g, s] of [...seen.entries()].sort((a, b) => b[1].size - a[1].size)) {
+    if (s.size < 3) break;
+    if (phrases.some((p) => p.includes(g.split(" ").slice(1, 4).join(" ")))) continue;
+    phrases.push(g);
+    if (phrases.length >= limits.phrases) break;
+  }
+  return { topics, phrases };
 }
 
 function firstSentence(text: string): string {
@@ -60,8 +97,24 @@ export function buildAvoidList(pieces: Array<{ opener: string; closer: string; t
   return { openers, closers, phrases };
 }
 
+export function renderNicheTakes(niche: NicheTakes | null | undefined): string {
+  if (!niche || (!niche.topics.length && !niche.phrases.length)) return "";
+  const block = (title: string, xs: string[]) => (xs.length ? `${title}:\n${xs.map((x) => `- ${x}`).join("\n")}` : "");
+  return asData(
+    "what_everyone_is_saying",
+    [
+      "What creators in the owner's niche are already posting (from collected public posts). Do not make the same point in the same way. If the topic overlaps, find the angle they are missing: the hidden cause, the operational detail, the measurement, the thing that breaks. Never reuse their phrases.",
+      block("Common topics", niche.topics),
+      block("Phrases everyone uses", niche.phrases),
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+  );
+}
+
 export function renderAvoidList(avoid: AvoidList | null | undefined): string {
-  if (!avoid || (!avoid.openers.length && !avoid.closers.length && !avoid.phrases.length)) return "";
+  const niche = renderNicheTakes(avoid?.niche);
+  if (!avoid || (!avoid.openers.length && !avoid.closers.length && !avoid.phrases.length)) return niche;
   const block = (title: string, xs: string[]) => (xs.length ? `${title}:\n${xs.map((x) => `- ${x}`).join("\n")}` : "");
   return asData(
     "do_not_repeat",
@@ -73,7 +126,7 @@ export function renderAvoidList(avoid: AvoidList | null | undefined): string {
     ]
       .filter(Boolean)
       .join("\n\n"),
-  );
+  ) + (niche ? `\n\n${niche}` : "");
 }
 
 /** Opener / closer / full text of a stored draft body or a plain post. */

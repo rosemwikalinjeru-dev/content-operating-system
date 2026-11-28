@@ -9,9 +9,11 @@ import {
   type BrandProfile,
   type ContentFormat,
   type KnowledgeEntry,
+  type SourcePost,
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
-import { renderAvoidList, type AvoidList } from "./avoid";
+import { renderAvoidList, renderNicheTakes, type AvoidList, type NicheTakes } from "./avoid";
+import { renderSourcePost } from "./source-post";
 import { asData, composeSystem, renderKnowledge, type PromptTemplate } from "./prompts";
 
 type Knowledge = Pick<KnowledgeEntry, "id" | "kind" | "title" | "body">;
@@ -100,7 +102,11 @@ export const IDEA_ANALYST: PromptTemplate = {
 ${CRAFT_RULES}`,
 };
 
-export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: string; raw_input: string }): GenerateRequest<IdeaAnalysis> {
+export function buildIdeaAnalysisRequest(
+  ctx: AgentContext,
+  idea: { title: string; raw_input: string },
+  extra: { sourcePost?: SourcePost | null; niche?: NicheTakes | null } = {},
+): GenerateRequest<IdeaAnalysis> {
   return {
     task: "idea_analysis",
     system: composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: IDEA_ANALYST }),
@@ -112,7 +118,11 @@ export function buildIdeaAnalysisRequest(ctx: AgentContext, idea: { title: strin
           asData("idea", `Title: ${idea.title}\n\n${idea.raw_input}`),
           "Related knowledge from the owner's knowledge base:",
           renderKnowledge(ctx.related),
-        ].join("\n\n"),
+          renderSourcePost(extra.sourcePost),
+          renderNicheTakes(extra.niche),
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       },
     ],
     schema: IdeaAnalysisOutput,
@@ -154,6 +164,8 @@ export function buildBriefRequest(
     recentStages?: FunnelStage[];
     /** Openings, endings and phrases already used, which the hooks must not repeat. */
     avoid?: AvoidList | null;
+    /** Someone else's post this piece responds to. */
+    sourcePost?: SourcePost | null;
   },
 ): GenerateRequest<MasterBriefOutput> {
   const parts = [
@@ -166,6 +178,8 @@ export function buildBriefRequest(
   parts.push(describeMix(ctx.brand.brand_guidelines.content_mix, input.recentStages ?? []));
   const avoid = renderAvoidList(input.avoid);
   if (avoid) parts.push(avoid);
+  const source = renderSourcePost(input.sourcePost);
+  if (source) parts.push(source);
   // Owner guidance is an instruction from the owner, not external data.
   if (input.guidance) parts.push(`Owner's guidance for this brief: ${input.guidance}`);
 

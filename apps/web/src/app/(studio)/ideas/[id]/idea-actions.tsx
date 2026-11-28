@@ -12,11 +12,11 @@ const FORMAT_LABELS: Record<ContentFormat, string> = {
   short_video: "Short video",
 };
 
-export function IdeaActions({ ideaId, hasAnalysis }: { ideaId: string; hasAnalysis: boolean }) {
+export function IdeaActions({ ideaId, hasAnalysis, defaultFormats }: { ideaId: string; hasAnalysis: boolean; defaultFormats?: ContentFormat[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<"analyze" | "brief" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [formats, setFormats] = useState<ContentFormat[]>(["linkedin", "x_thread"]);
+  const [formats, setFormats] = useState<ContentFormat[]>(defaultFormats?.length ? defaultFormats : ["linkedin", "x_thread"]);
 
   async function analyze(force: boolean) {
     setBusy("analyze");

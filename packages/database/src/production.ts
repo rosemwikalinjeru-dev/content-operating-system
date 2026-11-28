@@ -56,12 +56,13 @@ export interface IdeaWithAnalysis {
   analysis_input_hash: string | null;
   analyzed_at: string | null;
   created_at: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 export async function getIdeaWithAnalysis(db: UserClient, id: string): Promise<IdeaWithAnalysis> {
   const { data, error } = await db
     .from("content_ideas")
-    .select("id, brand_id, title, raw_input, status, tags, analysis, analysis_input_hash, analyzed_at, created_at")
+    .select("id, brand_id, title, raw_input, status, tags, analysis, analysis_input_hash, analyzed_at, created_at, metadata")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();

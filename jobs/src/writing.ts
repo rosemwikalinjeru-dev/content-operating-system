@@ -18,6 +18,7 @@ import {
   FORMAT_ASSET,
   formatFromAsset,
   MasterBrief,
+  readSourcePost,
   refreshBody,
   toDraftBody,
   type DraftBody,
@@ -73,6 +74,8 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
   const rules = shared.rules;
   // Guidance only: not part of the "unchanged" hash, or every new post would force rewrites.
   const avoid = await loadAvoidList(deps, userId, project.id, examples);
+  const sourceIdea = project.idea_id ? await svc.loadIdea(deps.db, userId, project.idea_id) : null;
+  const sourcePost = readSourcePost(sourceIdea?.metadata);
 
   await svc.updateJob(deps.db, job, { progress: 20, current_step: "writing_formats" });
   let done = 0;
@@ -90,6 +93,7 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
         examples: examples.map((e) => e.id),
         related: related.map((k) => k.id),
         rules,
+        sourcePost,
         force: input.data.force ? job.id : null,
       });
       const written = await runStep(deps, job, opts, { name: `write_${format}`, position: i + 1, inputHash }, async (stepId) => {
@@ -100,7 +104,7 @@ export async function runWriteContent(deps: PipelineDeps, jobId: string, opts: R
           return { output: { asset_id: found, version: existing.version, version_id: existing.id, reused: true }, cost: 0 };
         }
         const templateId = await promptTemplateId(deps.db, userId, writer, `Write a ${asset.label}`);
-        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules, avoid });
+        const request = buildWriterRequest({ brand, examples, related }, { format, brief: brief.data, rules, avoid, sourcePost });
         const result = await deps.controller.generate(
           request,
           { userId, projectId: project.id, jobId: job.id, stepId, promptTemplateId: templateId },

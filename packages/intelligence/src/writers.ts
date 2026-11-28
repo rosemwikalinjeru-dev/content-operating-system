@@ -8,10 +8,12 @@ import {
   type ContentFormat,
   type DraftBody,
   type MasterBrief,
+  type SourcePost,
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
 import { CRAFT_RULES, type AgentContext } from "./agents";
 import { renderAvoidList, type AvoidList } from "./avoid";
+import { renderSourcePost } from "./source-post";
 import { asData, composeSystem, renderKnowledge, type PromptTemplate } from "./prompts";
 
 /** The owner's approved learned rules, appended to the system prompt when present. */
@@ -81,7 +83,7 @@ Format: a short vertical video script (under 60 seconds, the owner speaking to c
 
 export function buildWriterRequest(
   ctx: AgentContext,
-  input: { format: ContentFormat; brief: MasterBrief; guidance?: string; rules?: string[]; avoid?: AvoidList | null },
+  input: { format: ContentFormat; brief: MasterBrief; guidance?: string; rules?: string[]; avoid?: AvoidList | null; sourcePost?: SourcePost | null },
 ): GenerateRequest<DraftOutput> {
   const parts = [
     `Write the ${input.format.replace("_", " ")} for this approved brief.`,
@@ -91,6 +93,8 @@ export function buildWriterRequest(
   ];
   const avoid = renderAvoidList(input.avoid);
   if (avoid) parts.push(avoid);
+  const source = renderSourcePost(input.sourcePost);
+  if (source) parts.push(source);
   if (input.guidance) parts.push(`Owner's guidance for this draft: ${input.guidance}`);
   return {
     task: "format_writing",

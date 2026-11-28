@@ -11,6 +11,8 @@ const GATE_LABEL: Record<string, string> = {
   unsupported_claim: "Unsupported claim",
   repeated_hook: "Repeats an earlier opening",
   repeated_phrase: "Repeats an earlier phrase",
+  copied_from_source: "Copied from the post you are responding to",
+  echoes_niche: "Lifted from a post in your niche",
 };
 
 export function ReviewPanel({

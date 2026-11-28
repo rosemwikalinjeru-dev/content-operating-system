@@ -14,10 +14,12 @@ import {
   type GateFailure,
   type MasterBrief,
   type RepetitionFinding,
+  type SourcePost,
 } from "@contentos/schemas";
 import type { GenerateRequest } from "@contentos/provider-gateway";
 import { CRAFT_RULES, type AgentContext } from "./agents";
-import { normalise } from "./avoid";
+import { normalise, renderNicheTakes, type NicheTakes } from "./avoid";
+import { renderSourcePost } from "./source-post";
 import { asData, composeSystem, GLOBAL_RULES, renderKnowledge, type PromptTemplate } from "./prompts";
 
 export { normalise };
@@ -157,7 +159,7 @@ export function findRepetition(
 
 export const EDITORIAL_REVIEWER: PromptTemplate = {
   name: "editorial-reviewer",
-  version: 2,
+  version: 3,
   text: `You are the Editorial Reviewer. You did not write this draft. Judge it strictly against the owner's standards, as an editor who wants her to win, not to be flattered.
 
 Score each dimension 1–5, quoting the exact words your score is based on:
@@ -165,7 +167,7 @@ Score each dimension 1–5, quoting the exact words your score is based on:
 - single_point: one point, stated or unmistakable; nothing that belongs in another post. 1 = two or more points or none.
 - story: storytelling with intention; every line leads to the point. 1 = an update, a list of tips, or a story with no lesson.
 - voice: the cover test — with her name and photo hidden, would a reader know it is her (worldview: process before technology, diagnose before automating, measure it; plain short lines; the moments she notices)? Compare with the voice examples. 1 = any automation agency could have posted it.
-- specificity: named kind of business, an observable moment, a concrete consequence. 1 = abstractions ("businesses struggle with efficiency").
+- specificity: named kind of business, an observable moment, a concrete consequence. 1 = abstractions ("businesses struggle with efficiency"). Score it 2 or lower when the single point is one of the niche's common takes (what_everyone_is_saying) said the same way, or when a response mostly restates the source post.
 - craft: the format's rules (LinkedIn white space and length; tweet length and a first tweet that stands alone; one idea per slide; spoken lines and a 3-second hook for video).
 Use the full range. A 5 is rare. Most competent drafts are 3s.
 Score hook lower for an obvious or clickbait opening; voice lower for jargon, corporate phrasing, "many people", a formula ending ("Comment below", "Agree?"), a neat over-tidy conclusion, a default "3 tips" list, or reuse of her published lines; specificity lower for anything that could apply to any industry or person.
@@ -205,7 +207,7 @@ export function renderDraft(body: Pick<DraftBody, "sections">): string {
 
 export function buildReviewRequest(
   ctx: ReviewContext,
-  input: { body: DraftBody; brief: MasterBrief | null; repetition?: RepetitionFinding[] },
+  input: { body: DraftBody; brief: MasterBrief | null; repetition?: RepetitionFinding[]; sourcePost?: SourcePost | null; niche?: NicheTakes | null },
 ): GenerateRequest<ReviewOutput> {
   const system = [composeSystem({ brand: ctx.brand, examples: ctx.examples, skill: EDITORIAL_REVIEWER }), renderRules(ctx.rules)]
     .filter(Boolean)
@@ -222,6 +224,8 @@ export function buildReviewRequest(
           asData("draft", renderDraft(input.body)),
           "Verified knowledge (the only material that counts as real):",
           renderKnowledge(ctx.related),
+          renderSourcePost(input.sourcePost),
+          renderNicheTakes(input.niche),
           input.repetition?.length
             ? asData(
                 "repeats",

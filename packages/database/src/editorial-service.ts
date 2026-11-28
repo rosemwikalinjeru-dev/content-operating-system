@@ -233,3 +233,25 @@ export async function loadRecentBodies(db: ServiceClient, userId: string, exclud
   }
   return [...latest.values()];
 }
+
+/** Recently collected niche posts (research), for "what everyone is saying" and copy checks. */
+export async function loadNicheCorpus(
+  db: ServiceClient,
+  userId: string,
+  brandId: string,
+  days = 60,
+  limit = 150,
+): Promise<Array<{ text: string; topic: string | null }>> {
+  const { data, error } = await db
+    .from("research_sources")
+    .select("content_text, labels")
+    .eq("user_id", userId)
+    .eq("brand_id", brandId)
+    .gte("collected_at", new Date(Date.now() - days * 86_400_000).toISOString())
+    .order("collected_at", { ascending: false })
+    .limit(limit);
+  if (error) throw fromDatabaseError(error);
+  return (data as Array<{ content_text: string | null; labels: { topic?: unknown } | null }>)
+    .filter((r) => (r.content_text ?? "").length > 0)
+    .map((r) => ({ text: r.content_text ?? "", topic: typeof r.labels?.topic === "string" ? r.labels.topic : null }));
+}

@@ -6,6 +6,7 @@ import {
   type ContentAssetView,
   type ContentVersionView,
   type DraftBody,
+  readSourcePost,
   type LearnedRuleRow,
   type ReviewView,
 } from "@contentos/schemas";
@@ -258,13 +259,17 @@ export async function listGateOverrides(db: UserClient, versionId: string): Prom
 export async function gateSources(
   db: UserClient,
   assetId: string,
-): Promise<{ briefText: string; knowledgeText: string; banned: string[]; approvedBodies: unknown[]; examplePosts: string[] }> {
-  const { data: asset, error } = await db.from("content_assets").select("brief_id, content_projects(brand_id)").eq("id", assetId).maybeSingle();
+): Promise<{ briefText: string; knowledgeText: string; banned: string[]; approvedBodies: unknown[]; examplePosts: string[]; sourcePostText: string | null; nichePosts: string[] }> {
+  const { data: asset, error } = await db
+    .from("content_assets")
+    .select("brief_id, content_projects(brand_id, content_ideas(metadata))")
+    .eq("id", assetId)
+    .maybeSingle();
   if (error) throw fromDatabaseError(error);
   if (!asset) throw new AppError("NOT_FOUND", "Content not found.");
-  const a = asset as unknown as { brief_id: string | null; content_projects: { brand_id: string } | null };
+  const a = asset as unknown as { brief_id: string | null; content_projects: { brand_id: string; content_ideas: { metadata: unknown } | null } | null };
   const brandId = a.content_projects?.brand_id;
-  const [brief, knowledge, brand, approved, examples] = await Promise.all([
+  const [brief, knowledge, brand, approved, examples, niche] = await Promise.all([
     a.brief_id ? db.from("content_briefs").select("brief").eq("id", a.brief_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     brandId
       ? db.from("brand_knowledge").select("title, body").eq("brand_id", brandId).eq("verified", true).is("deleted_at", null).limit(500)
@@ -274,14 +279,25 @@ export async function gateSources(
     brandId
       ? db.from("brand_knowledge").select("body").eq("brand_id", brandId).eq("kind", "example_post").is("deleted_at", null).limit(50)
       : Promise.resolve({ data: [], error: null }),
+    brandId
+      ? db
+          .from("research_sources")
+          .select("content_text")
+          .eq("brand_id", brandId)
+          .gte("collected_at", new Date(Date.now() - 60 * 86_400_000).toISOString())
+          .order("collected_at", { ascending: false })
+          .limit(150)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const r of [brief, knowledge, brand, approved, examples]) if (r.error) throw fromDatabaseError(r.error);
+  for (const r of [brief, knowledge, brand, approved, examples, niche]) if (r.error) throw fromDatabaseError(r.error);
   return {
     briefText: brief.data ? JSON.stringify((brief.data as { brief: unknown }).brief) : "",
     knowledgeText: ((knowledge.data ?? []) as { title: string; body: string }[]).map((k) => `${k.title}\n${k.body}`).join("\n\n"),
     banned: ((brand.data as { voice_profile?: { banned_phrases?: string[] } } | null)?.voice_profile?.banned_phrases ?? []).filter(Boolean),
     approvedBodies: ((approved.data ?? []) as { body: unknown }[]).map((r) => r.body),
     examplePosts: ((examples.data ?? []) as { body: string }[]).map((r) => r.body),
+    sourcePostText: readSourcePost(a.content_projects?.content_ideas?.metadata)?.text ?? null,
+    nichePosts: ((niche.data ?? []) as { content_text: string | null }[]).map((r) => r.content_text ?? "").filter(Boolean),
   };
 }
 

@@ -232,12 +232,13 @@ export interface IdeaRecord {
   status: string;
   analysis: unknown;
   analysis_input_hash: string | null;
+  metadata: Record<string, unknown> | null;
 }
 
 export async function loadIdea(db: ServiceClient, userId: string, ideaId: string): Promise<IdeaRecord> {
   const { data, error } = await db
     .from("content_ideas")
-    .select("id, brand_id, title, raw_input, status, analysis, analysis_input_hash")
+    .select("id, brand_id, title, raw_input, status, analysis, analysis_input_hash, metadata")
     .eq("id", ideaId)
     .eq("user_id", userId)
     .is("deleted_at", null)

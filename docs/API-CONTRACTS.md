@@ -217,6 +217,17 @@ Readability checks:
 - **too_many_words**: more than 25 words on a slide.
 - **missing_screenshot**: a screenshot slide has no image.
 
+## Originality and responses (2026-11-28)
+
+- `POST /api/v1/ideas/from-post` takes `{ post: { text (30–5000), author, url?, platform }, take?, formats[1–4] }`.
+  - It creates an Inbox idea with `source_type: "repurpose"`.
+  - It stores `metadata.source_post` and `metadata.formats`.
+  - Nothing is scraped: the owner pastes the post.
+- `POST /api/v1/projects`: `formats` now defaults to the idea's chosen formats, else LinkedIn + X thread.
+- New approval gates:
+  - `copied_from_source`: 6+ words from the post being answered.
+  - `echoes_niche`: 6+ words from a niche post collected in the last 60 days.
+
 ## Types
 
 ```ts

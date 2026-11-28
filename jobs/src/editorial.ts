@@ -8,6 +8,7 @@
 import * as svc from "@contentos/database/service";
 import {
   buildAvoidList,
+  buildNicheTakes,
   pieceFromBody,
   pieceFromPost,
   type AvoidList,
@@ -19,7 +20,7 @@ import {
   RULE_PROPOSER,
   templateHash,
 } from "@contentos/intelligence";
-import { MasterBrief, weightedScore, type BrandProfile, type DraftBody, type GateFailure, type UserSettings } from "@contentos/schemas";
+import { MasterBrief, readSourcePost, weightedScore, type BrandProfile, type DraftBody, type GateFailure, type UserSettings } from "@contentos/schemas";
 import { z } from "zod";
 import { complete, loadAndStart, NonRetryableJobError, promptTemplateId, runStep, stableHash, type PipelineDeps, type RunOptions } from "./pipeline";
 
@@ -54,6 +55,9 @@ export async function loadReviewShared(deps: PipelineDeps, userId: string, brand
   return { brand, settings, examples, rules };
 }
 
+export const SOURCE_SEEN = "the post you are responding to";
+export const NICHE_SEEN = "a post in your niche";
+
 /** What new writing must not repeat: recent pieces outside this project plus the owner's posts. */
 export async function loadAvoidList(
   deps: PipelineDeps,
@@ -62,7 +66,11 @@ export async function loadAvoidList(
   examples: Array<{ body: string }>,
 ): Promise<AvoidList> {
   const bodies = (await svc.loadRecentBodies(deps.db, userId, projectId)).filter(isDraftBody);
-  return buildAvoidList([...bodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]);
+  const brandId = await svc.defaultBrandId(deps.db, userId);
+  return {
+    ...buildAvoidList([...bodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]),
+    niche: buildNicheTakes(await svc.loadNicheCorpus(deps.db, userId, brandId)),
+  };
 }
 
 /** Review one version as its own resumable step. Returns the review id and score. */
@@ -96,24 +104,37 @@ export async function reviewVersion(
       bannedPhrases: brand.voice_profile.banned_phrases,
       sourceText: `${briefRow ? JSON.stringify(briefRow.brief) : ""}\n${knowledgeText}`,
     }).filter((g) => g.code !== "unfilled_placeholder"); // already enforced at approval; shown on the draft
+    // Responses: the source post. Originality: what the niche is already posting.
+    const project = await svc.loadProject(deps.db, userId, asset.project_id);
+    const idea = project.idea_id ? await svc.loadIdea(deps.db, userId, project.idea_id) : null;
+    const sourcePost = readSourcePost(idea?.metadata);
+    const nichePosts = await svc.loadNicheCorpus(deps.db, userId, brand.id);
+    const niche = buildNicheTakes(nichePosts);
     const corpus = [
+      ...(sourcePost ? [{ text: sourcePost.text, hook: null, seenIn: SOURCE_SEEN }] : []),
+      ...nichePosts.map((p) => ({ text: p.text, hook: null, seenIn: NICHE_SEEN })),
       ...approved.filter(isDraftBody).map((b) => ({ text: b.sections.map((s) => [s.headline, s.text].filter(Boolean).join(" ")).join(" "), hook: b.sections[0]?.headline ?? b.sections[0]?.text ?? null, seenIn: "approved content" })),
       ...examples.map((e) => ({ text: e.body, hook: e.body.split("\n").find((l) => l.trim()) ?? null, seenIn: "voice example" })),
     ];
     const repetition = findRepetition(body, corpus);
     // The owner does not repeat herself: reused openings and phrases block approval.
     const repeatGates: GateFailure[] = repetition.map((r) => ({
-      code: r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
+      code: r.seen_in === SOURCE_SEEN ? "copied_from_source" : r.seen_in === NICHE_SEEN ? "echoes_niche" : r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
       section: r.section,
       quote: r.phrase,
-      message: `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}. Write it fresh.`,
+      message:
+        r.seen_in === SOURCE_SEEN
+          ? `"${r.phrase}" is copied from the post you are responding to. Say it your way.`
+          : r.seen_in === NICHE_SEEN
+            ? `"${r.phrase}" is lifted from someone else's post in your niche. Say it your way.`
+            : `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}. Write it fresh.`,
       source: "check",
     }));
 
     // 2. Independent model review.
     const templateId = await promptTemplateId(deps.db, userId, EDITORIAL_REVIEWER, "Review a draft");
     const result = await deps.controller.generate(
-      buildReviewRequest({ brand, examples, related, rules }, { body, brief: briefData, repetition }),
+      buildReviewRequest({ brand, examples, related, rules }, { body, brief: briefData, repetition, sourcePost, niche }),
       { userId, projectId: input.projectId, jobId: job.id, stepId, promptTemplateId: templateId },
       budgets(settings, job),
       settings.model_routes.editorial_review,

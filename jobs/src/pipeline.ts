@@ -14,6 +14,7 @@ import type { ServiceClient } from "@contentos/database/service";
 import {
   buildAvoidList,
   buildBriefRequest,
+  buildNicheTakes,
   buildIdeaAnalysisRequest,
   pieceFromBody,
   pieceFromPost,
@@ -24,7 +25,7 @@ import {
   type PromptTemplate,
 } from "@contentos/intelligence";
 import { ProviderError, type UsageController } from "@contentos/provider-gateway";
-import { ContentFormat, FunnelStage, IdeaAnalysis, type DraftSection } from "@contentos/schemas";
+import { ContentFormat, FunnelStage, IdeaAnalysis, readSourcePost, type DraftSection } from "@contentos/schemas";
 import { AppError, isAppError, type Logger } from "@contentos/shared";
 import { z } from "zod";
 
@@ -134,9 +135,12 @@ export async function runAnalyzeIdea(deps: PipelineDeps, jobId: string, opts: Ru
   const examples = await svc.loadVoiceExamples(deps.db, userId, brand.id);
   const related = await svc.searchKnowledge(deps.db, userId, brand.id, `${idea.title} ${idea.raw_input}`);
   const templateId = await promptTemplateId(deps.db, userId, IDEA_ANALYST, "Analyse a raw idea before writing");
+  const sourcePost = readSourcePost(idea.metadata);
+  const niche = buildNicheTakes(await svc.loadNicheCorpus(deps.db, userId, brand.id));
 
   const inputHash = stableHash({
     idea: [idea.title, idea.raw_input],
+    sourcePost,
     brand: brand.updated_at,
     examples: examples.map((e) => e.id),
     related: related.map((k) => k.id),
@@ -145,7 +149,7 @@ export async function runAnalyzeIdea(deps: PipelineDeps, jobId: string, opts: Ru
 
   await svc.updateJob(deps.db, job, { progress: 40, current_step: "analyzing" });
   await runStep(deps, job, opts, { name: "analyze", position: 1, inputHash }, async (stepId) => {
-    const request = buildIdeaAnalysisRequest({ brand, examples, related }, idea);
+    const request = buildIdeaAnalysisRequest({ brand, examples, related }, idea, { sourcePost, niche });
     const model = settings.model_routes.idea_analysis;
     await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task, model)) });
     const result = await deps.controller.generate(
@@ -193,7 +197,11 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
   const recentBodies = (await svc.loadRecentBodies(deps.db, userId, project.id)).filter(
     (b): b is { sections: DraftSection[] } => Boolean(b && typeof b === "object" && Array.isArray((b as { sections?: unknown }).sections)),
   );
-  const avoid = buildAvoidList([...recentBodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]);
+  const avoid = {
+    ...buildAvoidList([...recentBodies.map(pieceFromBody), ...examples.map((e) => pieceFromPost(e.body))]),
+    niche: buildNicheTakes(await svc.loadNicheCorpus(deps.db, userId, brand.id)),
+  };
+  const sourcePost = readSourcePost(idea.metadata);
 
   const inputHash = stableHash({
     idea: [idea.title, idea.raw_input],
@@ -203,6 +211,7 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
     related: related.map((k) => k.id),
     formats,
     guidance: input.data.guidance ?? null,
+    sourcePost,
     recentStages,
     template: templateHash(STRATEGIST),
   });
@@ -211,7 +220,7 @@ export async function runGenerateBrief(deps: PipelineDeps, jobId: string, opts: 
   await runStep(deps, job, opts, { name: "brief", position: 1, inputHash }, async (stepId) => {
     const request = buildBriefRequest(
       { brand, examples, related },
-      { idea, analysis, formats, guidance: input.data.guidance, recentStages, avoid },
+      { idea, analysis, formats, guidance: input.data.guidance, recentStages, avoid, sourcePost },
     );
     const model = settings.model_routes.master_brief;
     await svc.updateJob(deps.db, job, { estimated_cost: deps.controller.estimate(request, deps.controller.route(request.task, model)) });

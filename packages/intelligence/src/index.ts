@@ -6,3 +6,4 @@ export * from "./writers";
 export * from "./editorial";
 export * from "./avoid";
 export * from "./visual-director";
+export * from "./source-post";

@@ -1,5 +1,5 @@
 import { createProject, getIdeaWithAnalysis, listProjects, updateIdea } from "@contentos/database";
-import { ProjectCreate } from "@contentos/schemas";
+import { ContentFormat, ProjectCreate } from "@contentos/schemas";
 import { api, json, parseJson } from "@/lib/api/handler";
 import { requireApiSession } from "@/lib/auth";
 
@@ -16,7 +16,8 @@ export const POST = api(async ({ req }) => {
     brandId: idea.brand_id,
     ideaId: idea.id,
     title: input.title ?? idea.title,
-    formats: input.formats,
+    // An idea started from someone's post remembers which formats the owner asked for.
+    formats: input.formats ?? ContentFormat.array().min(1).catch(["linkedin", "x_thread"]).parse((idea.metadata as { formats?: unknown } | null)?.formats ?? null),
   });
   if (idea.status === "inbox") await updateIdea(db, idea.id, { status: "developing" });
   return json(project, 201);

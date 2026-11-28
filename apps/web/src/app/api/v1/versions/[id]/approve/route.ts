@@ -7,6 +7,9 @@ import { requireApiSession } from "@/lib/auth";
 
 type Params = { id: string };
 
+const SOURCE = "the post you are responding to";
+const NICHE = "a post in your niche";
+
 /**
  * Approve a version. Blocked while [placeholders] remain, and while a free check (banned
  * phrase, number with no source) or the latest review's gates fail without a recorded override.
@@ -25,10 +28,16 @@ export const PATCH = api<Params>(async ({ params }) => {
       .filter((b): b is { sections: typeof v.body.sections } => Boolean(b && typeof b === "object" && Array.isArray((b as { sections?: unknown }).sections)))
       .map((b) => ({ ...pieceFromBody(b), seenIn: "approved content" })),
     ...sources.examplePosts.map((p) => ({ ...pieceFromPost(p), seenIn: "your published posts" })),
-  ].map((c) => ({ text: c.text, hook: c.opener, seenIn: c.seenIn }));
+  ].map((c) => ({ text: c.text, hook: c.opener as string | null, seenIn: c.seenIn }));
+  // Other people's words: the post being answered and posts collected from the niche.
+  if (sources.sourcePostText) corpus.unshift({ text: sources.sourcePostText, hook: null, seenIn: SOURCE });
+  for (const p of sources.nichePosts) corpus.push({ text: p, hook: null, seenIn: NICHE });
   const repeats = findRepetition(v.body, corpus).map((r) => ({
-    code: r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
-    message: `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}.`,
+    code: r.seen_in === SOURCE ? "copied_from_source" : r.seen_in === NICHE ? "echoes_niche" : r.kind === "hook" ? "repeated_hook" : "repeated_phrase",
+    message:
+      r.seen_in === SOURCE || r.seen_in === NICHE
+        ? `"${r.phrase}" is copied from ${r.seen_in}. Say it your way.`
+        : `${r.kind === "hook" ? "Same opening" : `"${r.phrase}"`} already used in ${r.seen_in}.`,
   }));
   const open = [
     ...deterministicGates({ body: v.body, bannedPhrases: sources.banned, sourceText: `${sources.briefText}\n${sources.knowledgeText}` }),

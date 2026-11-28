@@ -1,5 +1,5 @@
 import { AppError, decodeCursor, encodeCursor, fromDatabaseError } from "@contentos/shared";
-import { deriveIdeaTitle, type Idea, type IdeaCreate, type IdeaListQuery, type IdeaUpdate, type Page } from "@contentos/schemas";
+import { deriveIdeaTitle, type Idea, type IdeaCreate, type IdeaFromPost, type IdeaListQuery, type IdeaUpdate, type Page } from "@contentos/schemas";
 import type { UserClient } from "./client";
 
 const COLUMNS = "id, brand_id, title, raw_input, source_type, status, tags, created_at, updated_at";
@@ -117,4 +117,32 @@ export async function countIdeasByStatus(db: UserClient): Promise<Record<string,
     out[statuses[i]!] = r.count ?? 0;
   });
   return out;
+}
+
+/** An idea that responds to someone else's post (source_type "repurpose"). */
+export async function createIdeaFromPost(
+  db: UserClient,
+  userId: string,
+  brandId: string,
+  input: IdeaFromPost,
+): Promise<Idea> {
+  const raw = [
+    input.take?.trim() || "My own take on this post: [what I agree with, disagree with, or would add from my work].",
+    `Responding to a post by ${input.post.author}${input.post.url ? ` (${input.post.url})` : ""}. Use it as a prompt, not as material.`,
+  ].join("\n\n");
+  const { data, error } = await db
+    .from("content_ideas")
+    .insert({
+      user_id: userId,
+      brand_id: brandId,
+      title: deriveIdeaTitle(input.take?.trim() || `Response to ${input.post.author}: ${input.post.text}`),
+      raw_input: raw,
+      tags: ["response"],
+      source_type: "repurpose",
+      metadata: { source_post: input.post, formats: input.formats },
+    })
+    .select(COLUMNS)
+    .single();
+  if (error) throw fromDatabaseError(error);
+  return data as Idea;
 }

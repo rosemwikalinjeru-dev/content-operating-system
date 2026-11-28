@@ -84,3 +84,29 @@ The contrast test also found that white text on Forest Teal reaches only 3.4:1. 
 5. Check that the readability badge shows "all slides pass".
 6. **Export**, then open the PDF and a PNG.
 7. Optionally upload the PDF to LinkedIn as a document post, as a preview only.
+
+## 7. Originality and responding to other posts (owner request, 2026-11-28)
+
+**Not the same things everyone is talking about.**
+- The niche's common takes come from research posts collected in the last 60 days:
+  - topics that recur across posts;
+  - 5+ word phrases that appear in three or more different posts.
+- They are given as `what_everyone_is_saying` to the Idea Analyst, the Strategist, the writers (carousel narrative and video script included) and the reviser. The instruction: find the angle the niche is missing, and never reuse its phrases.
+- The reviewer scores specificity at 2 or lower when the single point is a common take said the same way.
+- Lifting 6+ words from a niche post is now an approval gate (`echoes_niche`). It is checked on review and again at approval, so hand edits are covered too.
+
+**Start from someone's post.**
+- Location: Idea Inbox → **+ Start from someone's post**.
+- Inputs: paste their post, the author, an optional link, the platform, your take, and what to make (carousel, short-video script, LinkedIn post or X thread).
+- It creates an idea that remembers those formats.
+- The post goes, as data, to the analyst, Strategist, writers and reviewer, with response rules:
+  - make your own point;
+  - take a real stance;
+  - never copy, closely paraphrase, or reuse its examples or numbers;
+  - attribute its claims, and credit the author by name if you mention them.
+- Copying 6+ words from it is an approval gate (`copied_from_source`).
+- The idea page shows "Responding to [author]", with the original post available to view.
+
+**Limits.**
+- The niche list depends on research sweeps. Without recent sweeps it is empty, and only the owner-repetition and genericity checks apply.
+- Paraphrase detection uses exact and normalised phrase matching, not meaning, so a close paraphrase with different words can pass the automatic check. The reviewer is instructed to catch restating.

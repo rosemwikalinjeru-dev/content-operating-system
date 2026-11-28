@@ -54,3 +54,28 @@ export function deriveIdeaTitle(raw: string): string {
   const lastSpace = cut.lastIndexOf(" ");
   return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
+
+/**
+ * Someone else's post the owner wants to respond to. Stored with the idea as source material:
+ * every agent treats it as data to respond to, never as text to copy.
+ */
+export const SourcePost = z.object({
+  text: z.string().trim().min(30, "Paste the whole post").max(5000),
+  author: z.string().trim().min(1).max(120),
+  url: z.url().max(500).optional(),
+  platform: z.enum(["linkedin", "x", "instagram", "tiktok", "youtube", "threads", "other"]).default("linkedin"),
+});
+export type SourcePost = z.infer<typeof SourcePost>;
+
+export const IdeaFromPost = z.object({
+  post: SourcePost,
+  /** The owner's own reaction: agree, disagree, what they would add. Optional but strongly helps. */
+  take: z.string().trim().max(2000).optional(),
+  formats: z.array(z.enum(["linkedin", "x_thread", "carousel", "short_video"])).min(1).max(4),
+});
+export type IdeaFromPost = z.infer<typeof IdeaFromPost>;
+
+export function readSourcePost(metadata: unknown): SourcePost | null {
+  const parsed = SourcePost.safeParse((metadata as { source_post?: unknown } | null)?.source_post);
+  return parsed.success ? parsed.data : null;
+}

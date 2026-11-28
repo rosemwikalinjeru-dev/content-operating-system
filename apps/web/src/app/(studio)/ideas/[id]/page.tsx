@@ -1,5 +1,5 @@
 import { getIdeaWithAnalysis } from "@contentos/database";
-import { IdeaAnalysis, Uuid } from "@contentos/schemas";
+import { ContentFormat, IdeaAnalysis, readSourcePost, Uuid } from "@contentos/schemas";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -21,6 +21,9 @@ export default async function IdeaPage({
   const id = Uuid.safeParse((await params).id);
   if (!id.success) notFound();
   const idea = await getIdeaWithAnalysis(db, id.data).catch(() => null);
+  const sourcePost = idea ? readSourcePost(idea.metadata) : null;
+  const chosen = ContentFormat.array().safeParse((idea?.metadata as { formats?: unknown } | null)?.formats);
+  const defaultFormats = chosen.success ? chosen.data : undefined;
   if (!idea) notFound();
   const job = Uuid.safeParse((await searchParams).job);
   const analysis = IdeaAnalysis.safeParse(idea.analysis);
@@ -46,7 +49,31 @@ export default async function IdeaPage({
 
       {job.success && <JobProgress jobId={job.data} label="Analysing idea" />}
 
-      <IdeaActions ideaId={idea.id} hasAnalysis={analysis.success} />
+      {sourcePost && (
+        <div className="card space-y-2 border-l-4 border-l-[var(--accent)]">
+          <p className="font-semibold">
+            Responding to {sourcePost.author}
+            {sourcePost.url && (
+              <>
+                {" "}
+                ·{" "}
+                <a href={sourcePost.url} target="_blank" rel="noopener noreferrer" className="underline">
+                  original post
+                </a>
+              </>
+            )}
+          </p>
+          <p className="text-sm text-muted">
+            Used as a prompt only: your content makes your own point, credits {sourcePost.author} if it mentions their idea, and never
+            copies their words (copying blocks approval).
+          </p>
+          <details className="text-sm">
+            <summary className="cursor-pointer">Show their post</summary>
+            <p className="mt-2 whitespace-pre-wrap text-muted">{sourcePost.text}</p>
+          </details>
+        </div>
+      )}
+      <IdeaActions ideaId={idea.id} hasAnalysis={analysis.success} defaultFormats={defaultFormats} />
 
       {analysis.success ? (
         <AnalysisView analysis={analysis.data} analyzedAt={idea.analyzed_at} />

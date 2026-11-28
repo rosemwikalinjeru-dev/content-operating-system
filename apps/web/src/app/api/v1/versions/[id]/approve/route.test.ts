@@ -13,7 +13,7 @@ const req = () => new NextRequest(`http://localhost/api/v1/versions/${ID}/approv
 
 beforeEach(() => {
   vi.clearAllMocks();
-  repo.gateSources.mockResolvedValue({ briefText: "", knowledgeText: "", banned: ["game-changer"], approvedBodies: [], examplePosts: [] });
+  repo.gateSources.mockResolvedValue({ briefText: "", knowledgeText: "", banned: ["game-changer"], approvedBodies: [], examplePosts: [], sourcePostText: null, nichePosts: [] });
   repo.listGateOverrides.mockResolvedValue([]);
 });
 
@@ -47,7 +47,7 @@ describe("PATCH /api/v1/versions/:id/approve", () => {
 
   it("blocks reuse of a published opening or phrase until rewritten or overridden", async () => {
     repo.gateSources.mockResolvedValue({
-      briefText: "", knowledgeText: "", banned: [], approvedBodies: [],
+      briefText: "", knowledgeText: "", banned: [], approvedBodies: [], sourcePostText: null, nichePosts: [],
       examplePosts: ["You could be paying to attract customers while quietly losing the ones you already have.\n\nEnd."],
     });
     const body = { placeholders: [], sections: [{ key: "s1", kind: "hook", text: "You could be paying to attract customers while quietly losing the ones you already have.", headline: null, on_screen: null, broll: null }] };
@@ -55,5 +55,17 @@ describe("PATCH /api/v1/versions/:id/approve", () => {
     const res = await PATCH(req(), ctx);
     expect(res.status).toBe(409);
     expect((await res.json()).error.message).toMatch(/Same opening/);
+  });
+
+  it("blocks text copied from the post being answered", async () => {
+    repo.gateSources.mockResolvedValue({
+      briefText: "", knowledgeText: "", banned: [], approvedBodies: [], examplePosts: [], nichePosts: [],
+      sourcePostText: "Most agencies sell automation before they understand the workflow they are automating.",
+    });
+    const body = { placeholders: [], sections: [{ key: "s1", kind: "hook", text: "Agreed: most agencies sell automation before they understand the workflow.", headline: null, on_screen: null, broll: null }] };
+    repo.getVersionById.mockResolvedValue({ id: ID, asset_id: "a", body });
+    const res = await PATCH(req(), ctx);
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.message).toMatch(/copied from the post you are responding to/);
   });
 });

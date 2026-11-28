@@ -3,6 +3,7 @@ import { IdeaStatus } from "@contentos/schemas";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
+import { FromPostForm } from "./from-post-form";
 import { IdeaCapture } from "./idea-capture";
 import { IdeaList } from "./idea-list";
 
@@ -29,6 +30,7 @@ export default async function IdeasPage({ searchParams }: { searchParams: Promis
         <h1 className="font-display text-4xl">Idea Inbox</h1>
       </header>
       <IdeaCapture />
+      <FromPostForm />
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter ideas">
         {FILTERS.map((f) => (
           <Link
